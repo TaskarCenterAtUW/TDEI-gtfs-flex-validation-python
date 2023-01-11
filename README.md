@@ -28,19 +28,15 @@ Follow the steps to install the node packages required for both building and run
 
 2. Install the dependencies. Run the following command in terminal on the same directory as `requirements.txt`
     ```
-    pip install -r reqiorements.txt
+    pip install -r requirements.txt
     ```
-3. Install `python-ms-core` package
-    ```
-    pip install -i https://test.pypi.org/simple/python-ms-core==0.0.13
-    ```
-4. The http server by default starts with `8000` port 
-5. Run server
+3. The http server by default starts with `8000` port 
+4. Run server
     ```
     uvicorn src.main:app --reload
     ```
-6. By default `get` call on `localhost:8000/health` gives a sample response
-7. Other routes include a `ping` with get and post. Make `get` or `post` request to `http://localhost:8000/health/ping`
+5. By default `get` call on `localhost:8000/health` gives a sample response
+6. Other routes include a `ping` with get and post. Make `get` or `post` request to `http://localhost:8000/health/ping`
 
 
 ### Connectivity to cloud
