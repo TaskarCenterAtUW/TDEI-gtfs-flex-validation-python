@@ -1,3 +1,4 @@
+import uuid
 import urllib.parse
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
@@ -36,7 +37,7 @@ class Validation:
         upload_message.data.is_valid = valid
         upload_message.data.validation_message = validation_message
         data = QueueMessage.data_from({
-            'messageId': '98383',
+            'messageId': uuid.uuid1().hex[0:24],
             'message': 'Validation complete',
             'messageType': 'gtfsflexvalidation',
             'data': upload_message.data.to_json()
