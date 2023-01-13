@@ -12,7 +12,7 @@ class Validation:
         if len(message) > 0:
             gtfs_upload_message = QueueMessage.to_dict(message)
             for msg in gtfs_upload_message:
-                upload_message = GTFSFlexUpload.data_from(msg)
+                upload_message = GTFSFlexUpload.data_from(msg.__dict__)
                 file_upload_path = upload_message.data.file_upload_path
                 file_relative_path = file_upload_path.split('/')[-1]
                 if file_relative_path:
@@ -39,6 +39,6 @@ class Validation:
             'messageId': '98383',
             'message': 'Validation complete',
             'messageType': 'gtfsflexvalidation',
-            'data': upload_message.data.__dict__
+            'data': upload_message.data.to_json()
         })
         self.publishing_topic.publish(data=data)
