@@ -9,8 +9,6 @@ app = FastAPI()
 
 prefix_router = APIRouter(prefix='/health')
 
-_job = None
-
 
 @lru_cache()
 def get_settings():
@@ -19,14 +17,7 @@ def get_settings():
 
 @app.on_event('startup')
 async def startup_event(settings: Settings = Depends(get_settings)) -> None:
-    global _job
-    _job = GTFSFlexValidator()
-
-
-@app.on_event('shutdown')
-async def shutdown_event() -> None:
-    if _job and _job.monitor.is_running:
-        _job.monitor.stop()
+    GTFSFlexValidator()
 
 
 @prefix_router.get('/', status_code=status.HTTP_200_OK)

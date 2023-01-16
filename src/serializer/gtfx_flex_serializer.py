@@ -48,12 +48,12 @@ class GTFSFlexUpload:
         return to_json(self.__dict__)
 
     def data_from(self):
-        data = self
-        if isinstance(data, str):
-            data = json.loads(self)
-        if data:
+        message = self
+        if isinstance(message, str):
+            message = json.loads(self)
+        if message:
             try:
-                return GTFSFlexUpload(data=data)
+                return GTFSFlexUpload(data=message)
             except Exception as e:
                 error = str(e).replace('GTFSFlexUpload', 'Invalid parameter,')
                 raise TypeError(error)
