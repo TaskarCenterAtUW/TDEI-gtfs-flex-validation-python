@@ -14,5 +14,5 @@ class Validation:
             print('Valid file')
             return True, 'Valid file'
         else:
-            print('Invalid file.. No regex found')
+            print(f'No regex found in file {file_name}')
             return False, f'No regex found in file {file_name}'

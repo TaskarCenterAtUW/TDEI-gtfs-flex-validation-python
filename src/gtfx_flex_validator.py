@@ -1,3 +1,4 @@
+import os
 import uuid
 import urllib.parse
 from python_ms_core import Core
@@ -5,6 +6,24 @@ from python_ms_core.core.queue.models.queue_message import QueueMessage
 from .config import Settings
 from .validation import Validation
 from .serializer.gtfx_flex_serializer import GTFSFlexUpload
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_FILE_PATH = os.path.join(ROOT_DIR, 'assets')
+
+
+def download_local(file_upload_path=None):
+    storage_client = Core.get_storage_client()
+    file = storage_client.get_file_from_url('gtfsflex', file_upload_path)
+    try:
+        if file.name:
+            file_name = file.name.split('/')[-1]
+            with open(f'{ASSETS_FILE_PATH}/{file_name}', "wb") as blob:
+                blob.write(file.get_stream())
+            print(f'File download to location: {ASSETS_FILE_PATH}/{file_name}')
+        else:
+            print('File not found!')
+    except Exception as e:
+        print(e)
 
 
 class GTFSFlexValidator:
@@ -18,7 +37,6 @@ class GTFSFlexValidator:
         self.publish_topic = Core.get_topic(topic_name=settings.publishing_topic_name)
         self.logger = Core.get_logger()
         self.subscribe()
-        self.storage_client = Core.get_storage_client()
 
     def subscribe(self):
         def process(message):
@@ -29,10 +47,9 @@ class GTFSFlexValidator:
                 if file_upload_path:
                     validation = Validation(file_path=file_upload_path)
                     is_file_valid = validation.is_valid
-                    if is_file_valid:
-                        # Example to get the stream of a file
-                        self.get_file(file_upload_path=file_upload_path)
-
+                    # Example to get the stream of a file
+                    # Uncomment the below code to download the file in local machine
+                    # download_local(file_upload_path=file_upload_path)
                     validation_message = validation.validation_message
                     self.send_status(valid=is_file_valid, upload_message=upload_message,
                                      validation_message=validation_message)
@@ -40,15 +57,6 @@ class GTFSFlexValidator:
                 print('No Message')
 
         self.listening_topic.subscribe(subscription=self._subscription_name, callback=process)
-
-    def get_file(self, file_upload_path=None):
-        file_path = file_upload_path
-        if 'http' in file_upload_path:
-            file_path = '/'.join(urllib.parse.unquote(file_upload_path).split('/')[4:])
-
-        container = self.storage_client.get_file('gtfsflex', file_path)
-        # Uncomment the below line to read the stream
-        # body = container.get_stream()
 
     def send_status(self, valid: bool, upload_message: GTFSFlexUpload, validation_message: str = ''):
         upload_message.data.is_valid = valid
