@@ -1,4 +1,3 @@
-from typing import Union
 from fastapi import FastAPI, APIRouter, Depends, status
 from functools import lru_cache
 from .config import Settings
