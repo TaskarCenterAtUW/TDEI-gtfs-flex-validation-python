@@ -15,9 +15,9 @@ def download_local(file_upload_path=None):
     storage_client = Core.get_storage_client()
     file = storage_client.get_file_from_url('gtfsflex', file_upload_path)
     try:
-        if file.name:
-            file_name = file.name.split('/')[-1]
-            with open(f'{ASSETS_FILE_PATH}/{file_name}', "wb") as blob:
+        if file.file_path:
+            file_name = file.file_path.split('/')[-1]
+            with open(f'{ASSETS_FILE_PATH}/{file_name}', 'wb') as blob:
                 blob.write(file.get_stream())
             print(f'File download to location: {ASSETS_FILE_PATH}/{file_name}')
         else:
@@ -46,13 +46,11 @@ class GTFSFlexValidator:
                 file_upload_path = urllib.parse.unquote(upload_message.data.file_upload_path)
                 if file_upload_path:
                     validation = Validation(file_path=file_upload_path)
-                    is_file_valid = validation.is_valid
+                    self.send_status(valid=validation.is_valid, upload_message=upload_message,
+                                     validation_message=validation.validation_message)
                     # Example to get the stream of a file
                     # Uncomment the below code to download the file in local machine
                     # download_local(file_upload_path=file_upload_path)
-                    validation_message = validation.validation_message
-                    self.send_status(valid=is_file_valid, upload_message=upload_message,
-                                     validation_message=validation_message)
             else:
                 print('No Message')
 
