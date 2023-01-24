@@ -8,7 +8,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_FILE_PATH = os.path.join(ROOT_DIR, 'assets')
 
 
-def send(settings=None):
+def send(settings=None) -> str:
     publish_topic = Core.get_topic(topic_name=settings.subscription_topic_name)
     file_data = open(f'{ASSETS_FILE_PATH}/msg-gtfs-flex-upload.json')
     upload_data = json.load(file_data)

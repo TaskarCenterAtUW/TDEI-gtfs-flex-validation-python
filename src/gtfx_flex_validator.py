@@ -7,12 +7,6 @@ from .config import Settings
 from .gtfs_flex_validation import GTFSFlexValidation
 from .serializer.gtfx_flex_serializer import GTFSFlexUpload
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_FILE_PATH = os.path.join(ROOT_DIR, 'assets')
-
-# Use this method to download the remote file to local
-
-
 
 class GTFSFlexValidator:
     _settings = Settings()
@@ -26,16 +20,16 @@ class GTFSFlexValidator:
         self.logger = Core.get_logger()
         self.subscribe()
 
-    def subscribe(self):
+    def subscribe(self) -> None:
         # Process the incoming message
-        def process(message):
+        def process(message) -> None:
             if message is not None:
                 gtfs_upload_message = QueueMessage.to_dict(message)
                 upload_message = GTFSFlexUpload.data_from(gtfs_upload_message)
                 file_upload_path = urllib.parse.unquote(upload_message.data.file_upload_path)
                 if file_upload_path:
                     # Do the validation in the other class
-                    validator = GTFSFlexValidation(file_path=file_upload_path) 
+                    validator = GTFSFlexValidation(file_path=file_upload_path)
                     validation = validator.validate()
                     self.send_status(valid=validation[0], upload_message=upload_message,
                                      validation_message=validation[1])
@@ -44,7 +38,7 @@ class GTFSFlexValidator:
 
         self.listening_topic.subscribe(subscription=self._subscription_name, callback=process)
 
-    def send_status(self, valid: bool, upload_message: GTFSFlexUpload, validation_message: str = ''):
+    def send_status(self, valid: bool, upload_message: GTFSFlexUpload, validation_message: str = '') -> None:
         upload_message.data.is_valid = valid
         upload_message.data.validation_message = validation_message if not valid else ''
         message_id = uuid.uuid1().hex[0:24]
