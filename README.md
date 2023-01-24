@@ -17,6 +17,18 @@ The project is built on Python with FastAPI framework. All the regular nuances f
 | Python     | 3.10.x  |
 
 
+### Connectivity to cloud
+- Connecting this to cloud will need the following in the `.env` file
+
+```bash
+UPLOAD_TOPIC=xxxx
+UPLOAD_SUBSCRIPTION=xxxx
+VALIDATION_TOPIC=xxxx
+QUEUECONNECTION=xxxx
+STORAGECONNECTION=xxxx
+```
+The application right now does not connect with the storage but validates via the file name.
+
 ### Build and Test
 Follow the steps to install the node packages required for both building and running the application
 
@@ -37,18 +49,12 @@ Follow the steps to install the node packages required for both building and run
     ```
 5. By default `get` call on `localhost:8000/health` gives a sample response
 6. Other routes include a `ping` with get and post. Make `get` or `post` request to `http://localhost:8000/health/ping`
+7. Once the server starts, it will start to listening the subscriber(`UPLOAD_SUBSCRIPTION` should be in env file)
+8. To publish a message to the same topic, hit `http://127.0.0.1:8000/publish` API
+9. Once the above API(Step 8) is done, the message will be received in validation automatically
 
 
-### Connectivity to cloud
-- Connecting this to cloud will need the following in the `.env` file
 
-```bash
-UPLOAD_TOPIC=xxxx
-UPLOAD_SUBSCRIPTION=xxxx
-VALIDATION_TOPIC=xxxx
-QUEUECONNECTION=xxxx
-```
-The application right now does not connect with the storage but validates via the file name.
 
 
 ### Messaging
