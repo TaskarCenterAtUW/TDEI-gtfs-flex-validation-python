@@ -4,26 +4,14 @@ import urllib.parse
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 from .config import Settings
-from .validation import Validation
+from .gtfs_flex_validation import GTFSFlexValidation
 from .serializer.gtfx_flex_serializer import GTFSFlexUpload
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_FILE_PATH = os.path.join(ROOT_DIR, 'assets')
 
+# Use this method to download the remote file to local
 
-def download_local(file_upload_path=None):
-    storage_client = Core.get_storage_client()
-    file = storage_client.get_file_from_url('gtfsflex', file_upload_path)
-    try:
-        if file.file_path:
-            file_name = file.file_path.split('/')[-1]
-            with open(f'{ASSETS_FILE_PATH}/{file_name}', 'wb') as blob:
-                blob.write(file.get_stream())
-            print(f'File download to location: {ASSETS_FILE_PATH}/{file_name}')
-        else:
-            print('File not found!')
-    except Exception as e:
-        print(e)
 
 
 class GTFSFlexValidator:
@@ -39,18 +27,18 @@ class GTFSFlexValidator:
         self.subscribe()
 
     def subscribe(self):
+        # Process the incoming message
         def process(message):
             if message is not None:
                 gtfs_upload_message = QueueMessage.to_dict(message)
                 upload_message = GTFSFlexUpload.data_from(gtfs_upload_message)
                 file_upload_path = urllib.parse.unquote(upload_message.data.file_upload_path)
                 if file_upload_path:
-                    validation = Validation(file_path=file_upload_path)
-                    self.send_status(valid=validation.is_valid, upload_message=upload_message,
-                                     validation_message=validation.validation_message)
-                    # Example to get the stream of a file
-                    # Uncomment the below code to download the file in local machine
-                    # download_local(file_upload_path=file_upload_path)
+                    # Do the validation in the other class
+                    validator = GTFSFlexValidation(file_path=file_upload_path) 
+                    validation = validator.validate()
+                    self.send_status(valid=validation[0], upload_message=upload_message,
+                                     validation_message=validation[1])
             else:
                 print('No Message')
 
