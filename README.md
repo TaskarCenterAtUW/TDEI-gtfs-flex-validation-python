@@ -25,6 +25,7 @@ UPLOAD_TOPIC=xxxx
 UPLOAD_SUBSCRIPTION=xxxx
 VALIDATION_TOPIC=xxxx
 QUEUECONNECTION=xxxx
+STORAGECONNECTION=xxxx
 ```
 The application right now does not connect with the storage but validates via the file name.
 
