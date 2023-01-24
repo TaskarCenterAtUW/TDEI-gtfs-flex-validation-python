@@ -17,6 +17,17 @@ The project is built on Python with FastAPI framework. All the regular nuances f
 | Python     | 3.10.x  |
 
 
+### Connectivity to cloud
+- Connecting this to cloud will need the following in the `.env` file
+
+```bash
+UPLOAD_TOPIC=xxxx
+UPLOAD_SUBSCRIPTION=xxxx
+VALIDATION_TOPIC=xxxx
+QUEUECONNECTION=xxxx
+```
+The application right now does not connect with the storage but validates via the file name.
+
 ### Build and Test
 Follow the steps to install the node packages required for both building and running the application
 
@@ -42,16 +53,7 @@ Follow the steps to install the node packages required for both building and run
 9. Once the above API(Step 8) is done, the message will be received in validation automatically
 
 
-### Connectivity to cloud
-- Connecting this to cloud will need the following in the `.env` file
 
-```bash
-UPLOAD_TOPIC=xxxx
-UPLOAD_SUBSCRIPTION=xxxx
-VALIDATION_TOPIC=xxxx
-QUEUECONNECTION=xxxx
-```
-The application right now does not connect with the storage but validates via the file name.
 
 
 ### Messaging
