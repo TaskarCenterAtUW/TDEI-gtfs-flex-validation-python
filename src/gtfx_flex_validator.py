@@ -45,7 +45,7 @@ class GTFSFlexValidator:
         print(f'Publishing new message with ID: {message_id}')
         data = QueueMessage.data_from({
             'messageId': message_id,
-            'message': 'Validation complete',
+            'message': upload_message.message or 'Validation complete',
             'messageType': 'gtfsflexvalidation',
             'data': upload_message.data.to_json()
         })
