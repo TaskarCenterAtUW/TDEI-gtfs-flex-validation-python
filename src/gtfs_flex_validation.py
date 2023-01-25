@@ -26,6 +26,13 @@ class GTFSFlexValidation:
         # file is downloaded to above path
         # use the remaining logic to validate 
         # and create other test cases.
+        # TODO:
+        #   download the file to a local directory (downloads)
+        #   file_details = json.load(file..)
+        #   ret_values = validate(downloaded_file)
+        #   delete the local file in downloads folder
+        # return file_details['valid'], file_details['valid_message]
+        # return ret_values
 
     # dummy validation code with just file name.
     def is_file_name_valid(self, file_full_name=None) -> tuple[bool, str]:

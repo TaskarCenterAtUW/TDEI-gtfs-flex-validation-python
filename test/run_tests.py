@@ -85,6 +85,9 @@ def do_test(test, settings: Settings):
             }
             post_message_to_topic(upload_message, settings)
 
+        # TODO: remove direct access to the validation
+        #     listen to the topic that validation service posts to
+        #      when receive message. check for msg[data[is_valid] & data[message]]
         validator = gtfs_flex_validation.GTFSFlexValidation(file_path=blob_url).validate()
         validation_data = test['Output']
         if validation_data['valid'] == str(validator[0]):
