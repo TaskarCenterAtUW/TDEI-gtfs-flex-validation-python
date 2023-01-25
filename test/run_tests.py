@@ -93,7 +93,6 @@ def do_test(test, settings: Settings):
             print(f'Performing tests :{test["Name"]}:FAILED\n')
 
 
-
 def test_harness():
     # Initialize core..
     Core.initialize()
