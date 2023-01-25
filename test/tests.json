@@ -1,0 +1,24 @@
+{
+  "Tests": [
+    {
+      "Name": "TC1: Valid Flex Test ",
+      "Input_file": "./test_files/flex_test_case1.json",
+      "Input_Message": "./assets/gtfs-flex-upload.json",
+      "Output": 
+      { 
+        "valid": "True",
+        "message": "Passes everything"
+      }
+    },
+    {
+      "Name": "TC2: Invalid Flex Test ",
+      "Input_file": "./test_files/flex_test_case2.json",
+      "Input_Message": "./assets/gtfs-flex-upload.json",
+      "Output": 
+      { 
+        "valid": "False",
+        "message": "Schema validation failed"
+      }
+    }
+  ]
+}
