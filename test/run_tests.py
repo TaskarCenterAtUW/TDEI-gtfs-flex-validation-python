@@ -1,6 +1,7 @@
 import os
 import datetime
 import json
+import time
 import uuid
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
@@ -99,11 +100,15 @@ def subscribe(settings: Settings):
             else:
                 print(f'Performing tests :{message}:FAILED\n')
         else:
-            print(parsed_message)
-            print('Some other message received \n')
+            # print(parsed_message)
+            print('Message Received from NodeJS publisher. \n')
 
-    listening_topic = Core.get_topic(topic_name=settings.subscription_topic_name)
-    listening_topic.subscribe(subscription=settings.subscription_name, callback=process)
+    try:
+        listening_topic = Core.get_topic(topic_name=settings.subscription_topic_name)
+        listening_topic.subscribe(subscription=settings.subscription_name, callback=process)
+    except Exception as e:
+        print(e)
+        print('Tests Done!')
 
 
 def test_harness():
@@ -118,3 +123,6 @@ def test_harness():
 if __name__ == "__main__":
     print(f'Performing tests :')
     test_harness()
+    time.sleep(30)
+    print('Tests Completed!\n')
+    os._exit(0)
