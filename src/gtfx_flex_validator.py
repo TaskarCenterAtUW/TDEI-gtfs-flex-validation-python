@@ -40,7 +40,7 @@ class GTFSFlexValidator:
 
     def send_status(self, valid: bool, upload_message: GTFSFlexUpload, validation_message: str = '') -> None:
         upload_message.data.is_valid = valid
-        upload_message.data.validation_message = validation_message if not valid else ''
+        upload_message.data.validation_message = validation_message
         message_id = uuid.uuid1().hex[0:24]
         print(f'Publishing new message with ID: {message_id}')
         data = QueueMessage.data_from({
