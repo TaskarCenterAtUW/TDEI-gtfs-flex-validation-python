@@ -52,7 +52,19 @@ Follow the steps to install the node packages required for both building and run
 7. Once the server starts, it will start to listening the subscriber(`UPLOAD_SUBSCRIPTION` should be in env file)
 8. To publish a message to the same topic, hit `http://127.0.0.1:8000/publish` API
 9. Once the above API(Step 8) is done, the message will be received in validation automatically
-
+10. How to add new tests 
+    Add the new set of test inside `test/tests.json` file like -
+        ```
+        {
+         "Name": "Test Name",
+         "Input_file": "test_files/flex_test_case1.json", // Input file path which you want to provide to the test
+         "Output":  // Defining the test output 
+             { 
+                 "valid": true,
+                 "message": "Passes everything"
+             }
+         }
+        ```
 
 
 
