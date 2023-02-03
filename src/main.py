@@ -2,7 +2,6 @@ from fastapi import FastAPI, APIRouter, Depends, status
 from functools import lru_cache
 from .config import Settings
 from .gtfx_flex_validator import GTFSFlexValidator
-from .publisher import send
 
 app = FastAPI()
 
@@ -32,12 +31,6 @@ def root():
 def ping():
     return "I'm healthy !!"
 
-
-@app.post('/publish', status_code=status.HTTP_200_OK)
-@app.get('/publish', status_code=status.HTTP_200_OK)
-def publish(settings: Settings = Depends(get_settings)):
-    message_id = send(settings=settings)
-    return f'Published message with Message ID: {message_id}'
 
 
 app.include_router(prefix_router)

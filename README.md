@@ -52,8 +52,6 @@ Follow the steps to install the node packages required for both building and run
 3. By default `get` call on `localhost:8000/health` gives a sample response
 4. Other routes include a `ping` with get and post. Make `get` or `post` request to `http://localhost:8000/health/ping`
 5. Once the server starts, it will start to listening the subscriber(`UPLOAD_SUBSCRIPTION` should be in env file)
-6. To publish a message to the same topic, hit `http://127.0.0.1:8000/publish` API
-7. Once the above API(Step 6) is done, the message will be received in validation automatically
 
 ### How to Setup and run the Tests
 
@@ -77,8 +75,6 @@ Add the new set of test inside `test/tests.json` file like -
     python tests/run_tests.py
 
 ```
-
-
 
 ### Messaging
 
