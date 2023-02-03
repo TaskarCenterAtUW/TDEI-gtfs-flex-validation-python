@@ -1,6 +1,6 @@
 {
     "messageId": "98383",
-    "messageType": "gtfspathwayvalidation",
+    "messageType": "gtfsflexvalidation",
     "publishedDate": "2022-11-22T10:25:04.571Z",
     "message": "Validation complete",
     "data": {

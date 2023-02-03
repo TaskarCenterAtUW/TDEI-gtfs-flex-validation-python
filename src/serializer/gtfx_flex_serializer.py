@@ -12,36 +12,28 @@ class GTFSFlexUpload:
         self.data = GTFSFlexUploadData(data=upload_data) if upload_data else {}
 
     @property
-    def message(self):
-        return self._message
+    def message(self): return self._message
 
     @message.setter
-    def message(self, value):
-        self._message = value
+    def message(self, value): self._message = value
 
     @property
-    def message_type(self):
-        return self._message_type
+    def message_type(self): return self._message_type
 
     @message_type.setter
-    def message_type(self, value):
-        self._message_type = value
+    def message_type(self, value): self._message_type = value
 
     @property
-    def message_id(self):
-        return self._message_id
+    def message_id(self): return self._message_id
 
     @message_id.setter
-    def message_id(self, value):
-        self._message_type = value
+    def message_id(self, value): self._message_id = value
 
     @property
-    def published_date(self):
-        return self._published_date
+    def published_date(self): return self._published_date
 
     @published_date.setter
-    def published_date(self, value):
-        self._published_date = value
+    def published_date(self, value): self._published_date = value
 
     def to_json(self):
         self.data = self.data.to_json()
