@@ -29,7 +29,7 @@ STORAGECONNECTION=xxxx
 ```
 The application right now does not connect with the storage but validates via the file name.
 
-### Build and Test
+### How to Setup and Build
 Follow the steps to install the node packages required for both building and running the application
 
 1. Setup virtual environment
@@ -42,30 +42,41 @@ Follow the steps to install the node packages required for both building and run
     ```
     pip install -r requirements.txt
     ```
-3. The http server by default starts with `8000` port 
-4. Run server
+### How to Run the Server/APIs   
+
+1. The http server by default starts with `8000` port
+2. Run server
     ```
     uvicorn src.main:app --reload
     ```
-5. By default `get` call on `localhost:8000/health` gives a sample response
-6. Other routes include a `ping` with get and post. Make `get` or `post` request to `http://localhost:8000/health/ping`
-7. Once the server starts, it will start to listening the subscriber(`UPLOAD_SUBSCRIPTION` should be in env file)
-8. To publish a message to the same topic, hit `http://127.0.0.1:8000/publish` API
-9. Once the above API(Step 8) is done, the message will be received in validation automatically
-10. How to add new tests 
-    Add the new set of test inside `test/tests.json` file like -
-    ```
-    {
-     "Name": "Test Name",
-     "Input_file": "test_files/flex_test_case1.json", // Input file path which you want to provide to the test
-     "Output":  // Defining the test output 
-         { 
-             "valid": true,
-             "message": "Passes everything"
-         }
-     }
-    ```
+3. By default `get` call on `localhost:8000/health` gives a sample response
+4. Other routes include a `ping` with get and post. Make `get` or `post` request to `http://localhost:8000/health/ping`
+5. Once the server starts, it will start to listening the subscriber(`UPLOAD_SUBSCRIPTION` should be in env file)
+6. To publish a message to the same topic, hit `http://127.0.0.1:8000/publish` API
+7. Once the above API(Step 6) is done, the message will be received in validation automatically
 
+### How to Setup and run the Tests
+
+#### How to add new tests
+Add the new set of test inside `test/tests.json` file like -
+```
+{
+ "Name": "Test Name",
+ "Input_file": "test_files/flex_test_case1.json", // Input file path which you want to provide to the test
+ "Output":  // Defining the test output 
+     { 
+         "valid": true,
+         "message": "Passes everything"
+     }
+ }
+```
+#### How to run the tests
+1. Make sure you have setup the project properly, see above for `How to Setup and Build`.
+2. Server should be running locally, see above for `How to Run the Server/APIs`. Once the setup is done, you can run the tests by hitting below command
+```
+    python tests/run_tests.py
+
+```
 
 
 
