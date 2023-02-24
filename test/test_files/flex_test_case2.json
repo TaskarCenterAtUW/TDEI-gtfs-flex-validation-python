@@ -8,10 +8,8 @@
   "valid_to": "2022-11-22T09:43:07.978Z",
   "data_source": "local",
   "flex_schema_version": "1.0.0",
-  "file_upload_path": "https://tdeisamplestorage.blob.core.windows.net/gtfsflex/2022/NOVEMBER/101/file_1668063783868_295d783c624c4f86a7f09b116d55dfd0.zip",
+  "file_upload_path": "https://tdeisamplestorage.blob.core.windows.net/gtfsflex/tests/fail_schema_1",
   "user_id": "101-1-2-2111",
   "tdei_record_id": "4CA2AA83-B99A-1234-90AA-C187EAC48FEB",
-  "polygon": {},
-  "is_valid": false,
-  "valid_message": "Schema validation failed"
+  "polygon": {}
 }

@@ -40,7 +40,10 @@ Follow the steps to install the node packages required for both building and run
 
 2. Install the dependencies. Run the following command in terminal on the same directory as `requirements.txt`
     ```
+    # Installing requirements
     pip install -r requirements.txt
+    # Installing tdei-gtfs-csv-validator package
+    pip install -i https://test.pypi.org/simple/tdei-gtfs-csv-validator
     ```
 ### How to Run the Server/APIs   
 
@@ -61,11 +64,7 @@ Add the new set of test inside `test/tests.json` file like -
 {
  "Name": "Test Name",
  "Input_file": "test_files/flex_test_case1.json", // Input file path which you want to provide to the test
- "Output":  // Defining the test output 
-     { 
-         "valid": true,
-         "message": "Passes everything"
-     }
+ "Result": true/false // Defining the test output 
  }
 ```
 #### How to run the tests

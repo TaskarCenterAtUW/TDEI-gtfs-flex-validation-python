@@ -12,12 +12,12 @@ class GTFSFlexValidator:
     _settings = Settings()
 
     def __init__(self):
-        Core.initialize()
+        core = Core()
         settings = Settings()
         self._subscription_name = settings.subscription_name
-        self.listening_topic = Core.get_topic(topic_name=settings.subscription_topic_name)
-        self.publish_topic = Core.get_topic(topic_name=settings.publishing_topic_name)
-        self.logger = Core.get_logger()
+        self.listening_topic = core.get_topic(topic_name=settings.subscription_topic_name)
+        self.publish_topic = core.get_topic(topic_name=settings.publishing_topic_name)
+        self.logger = core.get_logger()
         self.subscribe()
 
     def subscribe(self) -> None:

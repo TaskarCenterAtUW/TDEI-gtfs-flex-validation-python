@@ -3,20 +3,22 @@
     {
       "Name": "TC1: Valid Flex Test",
       "Input_file": "test_files/flex_test_case1.json",
-      "Output":
-      { 
-        "valid": true,
-        "message": "Passes everything"
-      }
+      "Result": true
     },
     {
-      "Name": "TC2: Invalid Flex Test",
+      "Name": "TC2: Failed Flex Test",
       "Input_file": "test_files/flex_test_case2.json",
-      "Output": 
-      { 
-        "valid": false,
-        "message": "Schema validation failed"
-      }
+      "Result": false
+    },
+    {
+      "Name": "TC3: Valid Flex Test",
+      "Input_file": "test_files/flex_test_case3.json",
+      "Result": true
+    },
+    {
+      "Name": "TC4: Failed Flex Test",
+      "Input_file": "test_files/flex_test_case4.json",
+      "Result": false
     }
   ]
 }
