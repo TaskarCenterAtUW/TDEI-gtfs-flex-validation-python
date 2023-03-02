@@ -171,7 +171,8 @@ class Meta:
     def __init__(self, data: dict):
         self._file_upload_path = data.get('file_upload_path', '')
         self._isValid = False
-        self._message = ''
+        self._validationMessage = ''
+        self.validationTime = 90
 
     @property
     def file_upload_path(self): return self._file_upload_path
@@ -186,10 +187,10 @@ class Meta:
     def isValid(self, value): self._isValid = value
 
     @property
-    def message(self): return self._message
+    def validationMessage(self): return self._validationMessage
 
-    @message.setter
-    def message(self, value): self._message = value
+    @validationMessage.setter
+    def validationMessage(self, value): self._validationMessage = value
 
 
 class Response:
