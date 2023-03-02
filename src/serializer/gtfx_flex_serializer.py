@@ -260,7 +260,7 @@ class Meta:
     def isValid(self): return self._isValid
 
     @isValid.setter
-    def _isValid(self, value): self._isValid = value
+    def isValid(self, value): self._isValid = value
 
 
 class Response:
