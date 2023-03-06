@@ -18,7 +18,8 @@ SCHEMA_VERSION = 'v2.0'
 class GTFSFlexValidation:
     def __init__(self, file_path=None):
         core = Core()
-        self.container_name = Settings.storage_container_name
+        settings = Settings()
+        self.container_name = settings.storage_container_name
         self.storage_client = core.get_storage_client()
         self.file_path = file_path
         self.file_relative_path = file_path.split('/')[-1]

@@ -161,9 +161,21 @@ class Request:
     def valid_to(self, value): self._valid_to = value
 
     @property
+    def data_source(self): return self._data_source
+
+    @data_source.setter
+    def data_source(self, value): self._data_source = value
+
+    @property
+    def polygon(self): return self._polygon
+
+    @polygon.setter
+    def polygon(self, value): self._polygon = value
+
+    @property
     def flex_schema_version(self): return self._flex_schema_version
 
-    @valid_to.setter
+    @flex_schema_version.setter
     def flex_schema_version(self, value): self._flex_schema_version = value
 
 
