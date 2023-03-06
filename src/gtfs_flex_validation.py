@@ -1,6 +1,7 @@
 import os
 import shutil
 from typing import Union, Any
+from config import Settings
 
 from python_ms_core import Core
 from tdei_gtfs_csv_validator import gcv_test_release
@@ -17,7 +18,7 @@ SCHEMA_VERSION = 'v2.0'
 class GTFSFlexValidation:
     def __init__(self, file_path=None):
         core = Core()
-        self.container_name = 'gtfsflex'
+        self.container_name = Settings.storage_container_name
         self.storage_client = core.get_storage_client()
         self.file_path = file_path
         self.file_relative_path = file_path.split('/')[-1]
@@ -93,7 +94,7 @@ class GTFSFlexValidation:
         if not is_exists:
             os.makedirs(DOWNLOAD_FILE_PATH)
 
-        file = self.storage_client.get_file_from_url('gtfsflex', file_upload_path)
+        file = self.storage_client.get_file_from_url(self.container_name, file_upload_path)
         try:
             if file.file_path:
                 file_path = file.file_path.split('/')[-1]

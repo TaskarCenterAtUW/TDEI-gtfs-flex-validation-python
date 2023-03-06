@@ -11,3 +11,4 @@ class Settings(BaseSettings):
     publishing_topic_name: str = os.environ.get('VALIDATION_TOPIC', None)
     subscription_name: str = os.environ.get('UPLOAD_SUBSCRIPTION', None)
     validation_topic: str = os.environ.get('VALIDATION_TOPIC', None)
+    storage_container_name: str = os.environ.get('CONTAINER_NAME', 'gtfsflex')
