@@ -45,6 +45,8 @@ class GTFSFlexValidator:
         upload_message.data.stage = 'Flex-Validation'
         upload_message.data.meta.isValid = valid
         upload_message.data.meta.validationMessage = validation_message or 'Validation successful'
+        upload_message.data.response.success = valid
+        upload_message.data.response.message = validation_message or 'Validation successful'
         message_id = uuid.uuid1().hex[0:24]
         print(f'Publishing new message with ID: {message_id}')
         data = QueueMessage.data_from({
