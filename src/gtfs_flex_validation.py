@@ -1,7 +1,7 @@
 import os
 import shutil
 from typing import Union, Any
-from config import Settings
+from .config import Settings
 
 from python_ms_core import Core
 from tdei_gtfs_csv_validator import gcv_test_release
