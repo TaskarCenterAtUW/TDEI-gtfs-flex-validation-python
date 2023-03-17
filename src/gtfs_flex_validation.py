@@ -1,5 +1,8 @@
 import os
 import shutil
+import logging
+import traceback
+from pathlib import Path
 from typing import Union, Any
 from .config import Settings
 
@@ -9,7 +12,11 @@ from tdei_gtfs_csv_validator import exceptions as gcvex
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Path used for download file generation.
-DOWNLOAD_FILE_PATH = os.path.join(ROOT_DIR, 'downloads')
+DOWNLOAD_FILE_PATH = f'{Path.cwd()}/downloads'
+
+logging.basicConfig()
+logger = logging.getLogger('FLEX_VALIDATION')
+logger.setLevel(logging.INFO)
 
 DATA_TYPE = 'gtfs_flex'
 SCHEMA_VERSION = 'v2.0'
@@ -38,16 +45,17 @@ class GTFSFlexValidation:
         dest = DOWNLOAD_FILE_PATH
         is_valid = False
         validation_message = ''
-        if self.file_relative_path.endswith('.json') or self.file_relative_path.endswith('.zip'):
+        root, ext = os.path.splitext(self.file_relative_path)
+        if ext:
             downloaded_file_path = self.download_single_file(self.file_path)
             try:
+                logger.info(f' Downloaded file path: {downloaded_file_path}')
                 gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, downloaded_file_path)
                 is_valid = True
             except Exception as err:
+                traceback.print_exc()
                 validation_message = str(err)
-            finally:
-                # Removing the file
-                os.remove(downloaded_file_path)
+                logger.error(f' Error While Validating File: {str(err)}')
         else:
             source = '/'.join(self.file_path.split('/')[4:])
             blobs = self.ls_files(source, recursive=True)
@@ -67,25 +75,14 @@ class GTFSFlexValidation:
                 gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, dest)
                 is_valid = True
             except Exception as err:
+                traceback.print_exc()
+                logger.error(f' Error While Validating Folder: {str(err)}')
                 validation_message = str(err)
             finally:
-                # Removing extract folder
-                shutil.rmtree(os.path.join(DOWNLOAD_FILE_PATH, dest), ignore_errors=False)
+                downloaded_file_path = dest
 
+        GTFSFlexValidation.clean_up(downloaded_file_path)
         return is_valid, validation_message
-
-    # dummy validation code with just file name.
-    def is_file_name_valid(self, file_full_name=None) -> tuple[bool, str]:
-        file_name = file_full_name.split('/')[-1]
-        if file_name.find('invalid') != -1:
-            print('Invalid file')
-            return False, 'Invalid file'
-        elif file_name.find('valid') != -1:
-            print('Valid file')
-            return True, 'Valid file'
-        else:
-            print(f'No regex found in file {file_name}')
-            return False, f'No regex found in file {file_name}'
 
     # Downloads the file to local folder of the server
     # file_upload_path is the fullUrl of where the 
@@ -101,12 +98,13 @@ class GTFSFlexValidation:
                 file_path = file.file_path.split('/')[-1]
                 with open(f'{DOWNLOAD_FILE_PATH}/{file_path}', 'wb') as blob:
                     blob.write(file.get_stream())
-                print(f'File downloaded to location: {DOWNLOAD_FILE_PATH}/{file_path}')
+                logger.info(f' File downloaded to location: {DOWNLOAD_FILE_PATH}/{file_path}')
                 return f'{DOWNLOAD_FILE_PATH}/{file_path}'
             else:
-                print('File not found!')
+                logger.info(' File not found!')
         except Exception as e:
-            print(e)
+            traceback.print_exc()
+            logger.error(e)
 
     def download_file(self, source, dest):
         # dest is a directory if ending with '/' or '.', otherwise it's a file
@@ -114,7 +112,7 @@ class GTFSFlexValidation:
             dest += '/'
         blob_dest = dest + os.path.basename(source) if dest.endswith('/') else dest
 
-        print(f'Downloading {source} to {blob_dest}')
+        logger.info(f' Downloading {source} to {blob_dest}')
         os.makedirs(os.path.dirname(blob_dest), exist_ok=True)
         bc = self.storage_client.get_file(container_name=self.container_name, file_name=source)
 
@@ -133,3 +131,13 @@ class GTFSFlexValidation:
             if recursive or not '/' in relative_path:
                 files.append(relative_path)
         return files
+
+    @staticmethod
+    def clean_up(path):
+        if os.path.isfile(path):
+            logger.info(f' Removing File: {path}')
+            os.remove(path)
+        else:
+            folder = os.path.join(DOWNLOAD_FILE_PATH, path)
+            logger.info(f' Removing Folder: {folder}')
+            shutil.rmtree(folder, ignore_errors=False)
