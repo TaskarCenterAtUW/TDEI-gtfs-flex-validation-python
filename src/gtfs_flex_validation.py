@@ -42,46 +42,23 @@ class GTFSFlexValidation:
     # when ready to replace, replace the call in the 
     # above function.
     def is_gtfs_flex_valid(self) -> tuple[Union[bool, Any], Union[str, Any]]:
-        dest = DOWNLOAD_FILE_PATH
         is_valid = False
         validation_message = ''
         root, ext = os.path.splitext(self.file_relative_path)
-        if ext:
+        if ext and ext.lower() == '.zip':
             downloaded_file_path = self.download_single_file(self.file_path)
             try:
                 logger.info(f' Downloaded file path: {downloaded_file_path}')
                 gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, downloaded_file_path)
                 is_valid = True
+                GTFSFlexValidation.clean_up(downloaded_file_path)
             except Exception as err:
                 traceback.print_exc()
                 validation_message = str(err)
                 logger.error(f' Error While Validating File: {str(err)}')
         else:
-            source = '/'.join(self.file_path.split('/')[4:])
-            blobs = self.ls_files(source, recursive=True)
-            if blobs:
-                if not source == '' and not source.endswith('/'):
-                    source += '/'
-                if not dest.endswith('/'):
-                    dest += '/'
-                dest += os.path.basename(os.path.normpath(source)) + '/'
-                blobs = [source + blob for blob in blobs]
-                for blob in blobs:
-                    blob_dest = dest + os.path.relpath(blob, source)
-                    self.download_file(blob, blob_dest)
-            else:
-                self.download_file(source, dest)
-            try:
-                gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, dest)
-                is_valid = True
-            except Exception as err:
-                traceback.print_exc()
-                logger.error(f' Error While Validating Folder: {str(err)}')
-                validation_message = str(err)
-            finally:
-                downloaded_file_path = dest
+            logger.error(f' Failed to validate because unknown file format')
 
-        GTFSFlexValidation.clean_up(downloaded_file_path)
         return is_valid, validation_message
 
     # Downloads the file to local folder of the server
