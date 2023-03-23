@@ -51,11 +51,11 @@ class GTFSFlexValidation:
                 logger.info(f' Downloaded file path: {downloaded_file_path}')
                 gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, downloaded_file_path)
                 is_valid = True
-                GTFSFlexValidation.clean_up(downloaded_file_path)
             except Exception as err:
                 traceback.print_exc()
                 validation_message = str(err)
                 logger.error(f' Error While Validating File: {str(err)}')
+            GTFSFlexValidation.clean_up(downloaded_file_path)
         else:
             logger.error(f' Failed to validate because unknown file format')
 
@@ -82,32 +82,6 @@ class GTFSFlexValidation:
         except Exception as e:
             traceback.print_exc()
             logger.error(e)
-
-    def download_file(self, source, dest):
-        # dest is a directory if ending with '/' or '.', otherwise it's a file
-        if dest.endswith('.'):
-            dest += '/'
-        blob_dest = dest + os.path.basename(source) if dest.endswith('/') else dest
-
-        logger.info(f' Downloading {source} to {blob_dest}')
-        os.makedirs(os.path.dirname(blob_dest), exist_ok=True)
-        bc = self.storage_client.get_file(container_name=self.container_name, file_name=source)
-
-        with open(blob_dest, 'wb') as file:
-            file.write(bc.get_stream())
-        return blob_dest
-
-    def ls_files(self, path, recursive=False):
-        if not path == '' and not path.endswith('/'):
-            path += '/'
-
-        blob_iter = self.client.list_files(name_starts_with=path)
-        files = []
-        for blob in blob_iter:
-            relative_path = os.path.relpath(blob.name, path)
-            if recursive or not '/' in relative_path:
-                files.append(relative_path)
-        return files
 
     @staticmethod
     def clean_up(path):
