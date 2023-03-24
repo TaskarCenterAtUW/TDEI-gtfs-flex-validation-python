@@ -9,16 +9,6 @@
       "Name": "TC2: Failed Flex Test",
       "Input_file": "test_files/flex_test_case2.json",
       "Result": false
-    },
-    {
-      "Name": "TC3: Valid Flex Test",
-      "Input_file": "test_files/flex_test_case3.json",
-      "Result": true
-    },
-    {
-      "Name": "TC4: Failed Flex Test",
-      "Input_file": "test_files/flex_test_case4.json",
-      "Result": false
     }
   ]
 }

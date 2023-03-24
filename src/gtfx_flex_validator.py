@@ -1,4 +1,4 @@
-import os
+import logging
 import uuid
 import urllib.parse
 from python_ms_core import Core
@@ -6,6 +6,10 @@ from python_ms_core.core.queue.models.queue_message import QueueMessage
 from .config import Settings
 from .gtfs_flex_validation import GTFSFlexValidation
 from .serializer.gtfx_flex_serializer import GTFSFlexUpload
+
+logging.basicConfig()
+logger = logging.getLogger('FLEX_VALIDATOR')
+logger.setLevel(logging.INFO)
 
 
 class GTFSFlexValidator:
@@ -27,7 +31,7 @@ class GTFSFlexValidator:
                 gtfs_upload_message = QueueMessage.to_dict(message)
                 upload_message = GTFSFlexUpload.data_from(gtfs_upload_message)
                 file_upload_path = urllib.parse.unquote(upload_message.data.meta.file_upload_path)
-                print(f'Received message for Record: {upload_message.data.tdei_record_id}')
+                logger.info(f' Received message for Record: {upload_message.data.tdei_record_id}')
                 if file_upload_path:
                     # Do the validation in the other class
                     validator = GTFSFlexValidation(file_path=file_upload_path)
@@ -35,9 +39,9 @@ class GTFSFlexValidator:
                     self.send_status(valid=validation[0], upload_message=upload_message,
                                      validation_message=validation[1])
                 else:
-                    print('No file Path found in message!')
+                    logger.info(' No file Path found in message!')
             else:
-                print('No Message')
+                logger.info(' No Message')
 
         self.listening_topic.subscribe(subscription=self._subscription_name, callback=process)
 
@@ -48,7 +52,7 @@ class GTFSFlexValidator:
         upload_message.data.response.success = valid
         upload_message.data.response.message = validation_message or 'Validation successful'
         message_id = uuid.uuid1().hex[0:24]
-        print(f'Publishing new message with ID: {message_id}')
+        logger.info(f' Publishing new message with ID: {message_id} with status: {upload_message.data.response.success} and Message: {upload_message.data.response.message}')
         data = QueueMessage.data_from({
             'messageId': message_id,
             'message': upload_message.message or 'Validation complete',
