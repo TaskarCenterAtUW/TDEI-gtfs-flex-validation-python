@@ -32,5 +32,4 @@ def ping():
     return "I'm healthy !!"
 
 
-
 app.include_router(prefix_router)
