@@ -31,7 +31,7 @@ STORAGECONNECTION=xxxx
 The application right now does not connect with the storage but validates via the file name.
 
 ### How to Setup and Build
-Follow the steps to install the node packages required for both building and running the application
+Follow the steps to install the node packages required for both building and running the application.
 
 1. Setup virtual environment
     ```
