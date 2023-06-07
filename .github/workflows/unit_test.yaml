@@ -34,4 +34,6 @@ jobs:
       - name: Run tests
         run: |
           coverage run --source=src -m unittest discover -s tests
+      - name: Test Report
+        run: |
           coverage report
