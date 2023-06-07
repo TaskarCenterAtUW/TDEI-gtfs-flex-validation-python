@@ -29,8 +29,8 @@ jobs:
           echo UPLOAD_TOPIC=test_subscription_topic >> .env
           echo VALIDATION_TOPIC=test_subscription_topic >> .env
           echo UPLOAD_SUBSCRIPTION=test_subscription >> .env
-          echo STORAGECONNECTION=DefaultEndpointsProtocol=https;AccountName=tdeisamplestorage;AccountKey=l9JSJCGq9NrXqRVKApSk1wwV27aWaOVuxeY0NWOZz2svIlJzyncr3UFTzLoAanFbmJIeb2WmwIcS+AStj5gELg==;EndpointSuffix=core.windows.net >> .env
-          echo QUEUECONNECTION=Endpoint=sb://tdei-service-bus.servicebus.windows.net/;SharedAccessKeyName=developer;SharedAccessKey=bddlcZHcH3sos3izTIYyaZTpapFRoVHwjOkfCZPdSxk=;EntityPath=gtfs-flex-upload >> .env
+          echo STORAGECONNECTION='DefaultEndpointsProtocol=https;AccountName=tdeisamplestorage;AccountKey=l9JSJCGq9NrXqRVKApSk1wwV27aWaOVuxeY0NWOZz2svIlJzyncr3UFTzLoAanFbmJIeb2WmwIcS+AStj5gELg==;EndpointSuffix=core.windows.net' >> .env
+          echo QUEUECONNECTION='Endpoint=sb://tdei-service-bus.servicebus.windows.net/;SharedAccessKeyName=developer;SharedAccessKey=bddlcZHcH3sos3izTIYyaZTpapFRoVHwjOkfCZPdSxk=;EntityPath=gtfs-flex-upload' >> .env
       - name: Run tests
         run: |
           coverage run --source=src -m unittest discover -s tests
