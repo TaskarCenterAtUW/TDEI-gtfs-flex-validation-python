@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock
 from src.serializer.gtfx_flex_serializer import GTFSFlexUpload, GTFSFlexUploadData, Request, Meta, Response
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
+current_dir = os.path.dirname(os.path.abspath(os.path.join(__file__, '../')))
 parent_dir = os.path.dirname(current_dir)
 
 TEST_JSON_FILE = os.path.join(parent_dir, 'src/assets/test_flex_payload.json')

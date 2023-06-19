@@ -2,11 +2,11 @@ import unittest
 import HtmlTestRunner
 
 # Define your test cases
-from tests.test_gtfs_flex_serializer import TestGTFSFlexUpload, TestGTFSFlexUploadData, TestRequest, \
+from tests.unit_tests.test_gtfs_flex_serializer import TestGTFSFlexUpload, TestGTFSFlexUploadData, TestRequest, \
     TestMeta, TestResponse
-# from tests.test_gtfs_pathways_validation import TestGTFSPathwaysValidation
-# from tests.test_gtfx_pathways_validator import TestGTFSPathwaysValidator
-# from tests.test_main import TestApp
+from tests.unit_tests.test_gtfs_flex_validation import TestSuccessGTFSFlexValidation, TestFailureGTFSFlexValidation
+from tests.unit_tests.test_gtfx_flex_validator import TestGTFSFlexValidator
+from tests.unit_tests.test_main import TestApp
 
 if __name__ == '__main__':
     # Create a test suite
@@ -17,9 +17,10 @@ if __name__ == '__main__':
     test_suite.addTest(unittest.makeSuite(TestRequest))
     test_suite.addTest(unittest.makeSuite(TestMeta))
     test_suite.addTest(unittest.makeSuite(TestResponse))
-    # test_suite.addTest(unittest.makeSuite(TestGTFSPathwaysValidation))
-    # test_suite.addTest(unittest.makeSuite(TestGTFSPathwaysValidator))
-    # test_suite.addTest(unittest.makeSuite(TestApp))
+    test_suite.addTest(unittest.makeSuite(TestSuccessGTFSFlexValidation))
+    test_suite.addTest(unittest.makeSuite(TestFailureGTFSFlexValidation))
+    test_suite.addTest(unittest.makeSuite(TestGTFSFlexValidator))
+    test_suite.addTest(unittest.makeSuite(TestApp))
 
     # Define the output file for the HTML report
     output_file = 'test_report.html'
