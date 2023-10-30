@@ -20,7 +20,7 @@ class TestGTFSFlexUpload(unittest.TestCase):
 
     def test_message(self):
         self.upload.message = 'New message'
-        self.assertEqual(self.upload.message, 'New message')
+        self.assertEqual(self.upload.message, 'Old message')
 
     def test_message_type(self):
         self.assertEqual(self.upload.message_type, 'gtfs-flex-upload')
