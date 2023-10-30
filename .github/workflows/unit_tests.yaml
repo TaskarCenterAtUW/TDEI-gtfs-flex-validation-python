@@ -1,0 +1,50 @@
+#################################
+## Super Linter GitHub Actions ##
+#################################
+name: Unit Tests
+
+#############################
+# Start the job on all push #
+#############################
+on:
+  push:
+    branches-ignore:
+      - '**'
+    # Remove the line above to run when pushing to master
+  pull_request:
+    branches: [master, dev]
+
+###############
+# Set the Job #
+###############
+jobs:
+  Setup:
+    name: Build
+    runs-on: ubuntu-latest
+
+    ##################
+    # Load all steps #
+    ##################
+    steps:
+      ##########################
+      # Checkout the code base #
+      ##########################
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          # Full git history is needed to get a proper
+          # list of changed files within `super-linter`
+          fetch-depth: 0
+
+      - name: Setup Virtual Environment
+        run: |
+          python3.10 -m venv .venv
+          source .venv/bin/activate
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple tdei-gtfs-csv-validator==0.0.31
+
+      - name: Unit Test Cases
+        run: python test_report.py
