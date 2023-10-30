@@ -34,3 +34,6 @@ jobs:
 
       - name: Unit Test Cases
         run: python test_report.py
+
+      - name: Run Coverage Report
+        run: coverage run --source=src -m unittest discover -s tests/unit_tests
