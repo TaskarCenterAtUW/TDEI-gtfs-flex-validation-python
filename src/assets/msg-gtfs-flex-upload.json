@@ -3,7 +3,7 @@
   "messageType": "gtfsflex",
   "message": "New Data published for theOrganization:101",
   "data": {
-    "tdei_org_id": "2CA2AA83-B99A-42E2-90AA-C187EAC48FEB",
+    "tdei_project_group_id": "2CA2AA83-B99A-42E2-90AA-C187EAC48FEB",
     "tdei_service_id": "8EF615EF-28AB-444B-82D3-0E62E3692382",
     "collected_by": "6D3E5B8C-FB16-4B6A-9436-72FD24756CC9",
     "collection_date": "2022-11-22T09:43:07.978Z",
