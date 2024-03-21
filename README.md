@@ -108,11 +108,32 @@ graph LR;
   A(gtfs-flex-upload)-->B[gtfs-flex-validation-service];
   B-->C(gtfs-flex-validation)
 ```
-#### Incoming
-The incoming messages will be from the upload queue `gtfs-flex-upload`.
-The format is mentioned in [msg-gtfs-flex-upload.json](./src/assets/msg-gtfs-flex-upload.json)
+#### Incoming Message
+```json
+{
+    "messageId": "c8c76e89f30944d2b2abd2491bd95337",
+    "messageType": "workflow_identifier",
+    "data": {
+      "file_upload_path": "https://tdeisamplestorage.blob.core.windows.net/gtfsflex/tests/success_1_all_attrs.zip",
+      "user_id": "c59d29b6-a063-4249-943f-d320d15ac9ab",
+      "tdei_project_group_id": "0b41ebc5-350c-42d3-90af-3af4ad3628fb"
+    }
+  }
+```
 
-#### Outgoing
-The outgoing messages will be to the `gtfs-flex-validation` topic.
-The format of the message is at [gtfs-flex-validation.json](./src/assets/msg-gtfs-flex-validation.json)
+#### Outgoing Message
+```json
+{
+    "messageId": "c8c76e89f30944d2b2abd2491bd95337",
+    "messageType": "workflow_identifier",
+    "data": {
+      "file_upload_path": "https://tdeisamplestorage.blob.core.windows.net/osw/test_upload/valid.zip",
+      "user_id": "c59d29b6-a063-4249-943f-d320d15ac9ab",
+      "tdei_project_group_id": "0b41ebc5-350c-42d3-90af-3af4ad3628fb",
+      "success": true,
+      "message": ""
+    }
+  }
+
+```
 
