@@ -6,6 +6,8 @@ from python_ms_core.core.queue.models.queue_message import QueueMessage
 from .config import Settings
 from .gtfs_flex_validation import GTFSFlexValidation
 from .serializer.gtfx_flex_serializer import GTFSFlexUpload
+from .models.file_upload_msg import FileUploadMsg
+import threading
 
 logging.basicConfig()
 logger = logging.getLogger('FLEX_VALIDATOR')
@@ -18,9 +20,9 @@ class GTFSFlexValidator:
     def __init__(self):
         core = Core()
         settings = Settings()
-        self._subscription_name = settings.subscription_name
-        self.listening_topic = core.get_topic(topic_name=settings.subscription_topic_name)
-        self.publish_topic = core.get_topic(topic_name=settings.publishing_topic_name)
+        self._subscription_name = settings.request_subscription
+        self.request_topic = core.get_topic(topic_name=settings.request_topic_name)
+        self.response_topic = core.get_topic(topic_name=settings.response_topic_name)
         self.logger = core.get_logger()
         self.storage_client = core.get_storage_client()
         self.subscribe()
@@ -30,35 +32,49 @@ class GTFSFlexValidator:
         def process(message) -> None:
             if message is not None:
                 gtfs_upload_message = QueueMessage.to_dict(message)
-                upload_message = GTFSFlexUpload.data_from(gtfs_upload_message)
-                file_upload_path = urllib.parse.unquote(upload_message.data.meta.file_upload_path)
-                logger.info(f' Received message for Record: {upload_message.data.tdei_record_id}')
-                if file_upload_path:
-                    # Do the validation in the other class
-                    validator = GTFSFlexValidation(file_path=file_upload_path, storage_client=self.storage_client)
-                    validation = validator.validate()
-                    self.send_status(valid=validation[0], upload_message=upload_message,
-                                     validation_message=validation[1])
-                else:
-                    logger.info(' No file Path found in message!')
+                upload_msg = FileUploadMsg.from_dict(gtfs_upload_message)
+                logger.info(upload_msg)
+                # upload_message = GTFSFlexUpload.data_from(gtfs_upload_message)
+                process_thread = threading.Thread(target=self.process_message,args=[upload_msg])
+                process_thread.start()
             else:
                 logger.info(' No Message')
 
-        self.listening_topic.subscribe(subscription=self._subscription_name, callback=process)
+        self.request_topic.subscribe(subscription=self._subscription_name, callback=process)
+    
+    def process_message(self, upload_msg: FileUploadMsg) -> None:
+        file_upload_path = urllib.parse.unquote(upload_msg.data.file_upload_path)
+        logger.info(f' Received message for Project Group: {upload_msg.data.tdei_project_group_id}')
+        logger.info(file_upload_path)
+        if file_upload_path:
+            # Do the validation in the other class
+            validator = GTFSFlexValidation(file_path=file_upload_path, storage_client=self.storage_client)
+            validation = validator.validate()
+            self.send_status(valid=validation[0], upload_message=upload_msg,
+                                    validation_message=validation[1])
+        else:
+            logger.info(' No file Path found in message!')
 
-    def send_status(self, valid: bool, upload_message: GTFSFlexUpload, validation_message: str = '') -> None:
-        upload_message.data.stage = 'Flex-Validation'
-        upload_message.data.meta.isValid = valid
-        upload_message.data.meta.validationMessage = validation_message or 'Validation successful'
-        upload_message.data.response.success = valid
-        upload_message.data.response.message = validation_message or 'Validation successful'
-        message_id = uuid.uuid1().hex[0:24]
-        logger.info(f' Publishing new message with ID: {message_id} with status: {upload_message.data.response.success} and Message: {upload_message.data.response.message}')
+    def send_status(self, valid: bool, upload_message: FileUploadMsg, validation_message: str = '') -> None:
+        # upload_message.data.stage = 'flex-validation'
+        # upload_message.data.meta.isValid = valid
+        # upload_message.data.meta.validationMessage = validation_message or 'Validation successful'
+        # upload_message.data.response.success = valid
+        # upload_message.data.response.message = validation_message or 'Validation successful'
+        # message_id = uuid.uuid1().hex[0:24]
+        response_message = {
+             "file_upload_path": upload_message.data.file_upload_path,
+      "user_id": upload_message.data.user_id ,
+      "tdei_project_group_id": upload_message.data.tdei_project_group_id,
+      "success": valid,
+      "message": validation_message
+        }
+        logger.info(f' Publishing new message with ID: {upload_message.messageId} with status: {valid} and Message: {validation_message}')
         data = QueueMessage.data_from({
-            'messageId': message_id,
-            'message': upload_message.message or 'Validation complete',
-            'messageType': 'gtfs-flex-validation',
-            'data': upload_message.data.to_json()
+            'messageId': upload_message.messageId,
+            'message':  'Validation complete',
+            'messageType': upload_message.messageType,
+            'data': response_message
         })
-        self.publish_topic.publish(data=data)
+        self.response_topic.publish(data=data)
         return

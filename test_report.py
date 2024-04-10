@@ -6,6 +6,7 @@ from tests.unit_tests.test_gtfs_flex_serializer import TestGTFSFlexUpload, TestG
     TestMeta, TestResponse
 from tests.unit_tests.test_gtfs_flex_validation import TestSuccessGTFSFlexValidation, TestFailureGTFSFlexValidation
 from tests.unit_tests.test_gtfx_flex_validator import TestGTFSFlexValidator
+from tests.unit_tests.test_file_upload_msg import TestFileUploadMsg
 from tests.unit_tests.test_main import TestApp
 
 if __name__ == '__main__':
@@ -21,6 +22,7 @@ if __name__ == '__main__':
     test_suite.addTest(unittest.makeSuite(TestFailureGTFSFlexValidation))
     test_suite.addTest(unittest.makeSuite(TestGTFSFlexValidator))
     test_suite.addTest(unittest.makeSuite(TestApp))
+    test_suite.addTest(unittest.makeSuite(TestFileUploadMsg))
 
     # Define the output file for the HTML report
     output_file = 'test_report.html'
