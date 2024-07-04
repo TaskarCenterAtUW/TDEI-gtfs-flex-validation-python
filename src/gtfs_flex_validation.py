@@ -77,7 +77,7 @@ class GTFSFlexValidation:
                 return f'{DOWNLOAD_FILE_PATH}/{file_path}'
             else:
                 logger.info(' File not found!')
-                raise FileNotFoundError('File not found!')  
+                raise Exception('File not found!')  
         except Exception as e:
             traceback.print_exc()
             logger.error(e)
