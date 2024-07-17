@@ -9,11 +9,48 @@ DOWNLOAD_FILE_PATH = f'{Path.cwd()}/downloads'
 SAVED_FILE_PATH = f'{Path.cwd()}/tests/unit_tests/test_files'
 
 SUCCESS_FILE_NAME = 'success_1_all_attrs.zip'
+MAC_SUCCESS_FILE_NAME = 'success_2_mac_issue.zip'
 FAILURE_FILE_NAME = 'fail_schema_1.zip'
 
 DATA_TYPE = 'gtfs_flex'
 SCHEMA_VERSION = 'v2.0'
 
+
+class TestSuccessWithWithMacOSFile(unittest.TestCase):
+    @patch.object(GTFSFlexValidation, 'download_single_file')
+    def setUp(self, mock_download_single_file):
+        os.makedirs(DOWNLOAD_FILE_PATH, exist_ok=True)
+        source = f'{SAVED_FILE_PATH}/{MAC_SUCCESS_FILE_NAME}'
+        destination = f'{DOWNLOAD_FILE_PATH}/{MAC_SUCCESS_FILE_NAME}'
+
+        if not os.path.isfile(destination):
+            shutil.copyfile(source, destination)
+
+        file_path = f'{DOWNLOAD_FILE_PATH}/{MAC_SUCCESS_FILE_NAME}'
+
+        with patch.object(GTFSFlexValidation, '__init__', return_value=None):
+            self.validator = GTFSFlexValidation(file_path=file_path, storage_client=MagicMock())
+            self.validator.file_path = file_path
+            self.validator.file_relative_path = MAC_SUCCESS_FILE_NAME
+            self.validator.container_name = None
+            mock_download_single_file.return_value = file_path
+
+    def tearDown(self):
+        pass
+
+    def test_validate_with_valid_file(self):
+        # Arrange
+        file_path = f'{DOWNLOAD_FILE_PATH}/{MAC_SUCCESS_FILE_NAME}'
+        expected_downloaded_file_path = file_path
+        self.validator.download_single_file = MagicMock(return_value=expected_downloaded_file_path)
+        GTFSFlexValidation.clean_up = MagicMock()
+
+        # Act
+        is_valid, _ = self.validator.validate()
+        (is_valid)
+
+        # Assert
+        self.assertTrue(is_valid)
 
 class TestSuccessGTFSFlexValidation(unittest.TestCase):
 

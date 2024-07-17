@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Union, Any
 from .config import Settings
 
-from tdei_gtfs_csv_validator import gcv_test_release
-from tdei_gtfs_csv_validator import exceptions as gcvex
+from tcat_gtfs_csv_validator import gcv_test_release
+from tcat_gtfs_csv_validator import exceptions as gcvex
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Path used for download file generation.
