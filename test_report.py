@@ -4,7 +4,7 @@ import HtmlTestRunner
 # Define your test cases
 from tests.unit_tests.test_gtfs_flex_serializer import TestGTFSFlexUpload, TestGTFSFlexUploadData, TestRequest, \
     TestMeta, TestResponse
-from tests.unit_tests.test_gtfs_flex_validation import TestSuccessGTFSFlexValidation, TestFailureGTFSFlexValidation
+from tests.unit_tests.test_gtfs_flex_validation import TestSuccessGTFSFlexValidation, TestFailureGTFSFlexValidation, TestSuccessWithWithMacOSFile
 from tests.unit_tests.test_gtfx_flex_validator import TestGTFSFlexValidator
 from tests.unit_tests.test_file_upload_msg import TestFileUploadMsg
 from tests.unit_tests.test_main import TestApp
@@ -19,6 +19,7 @@ if __name__ == '__main__':
     test_suite.addTest(unittest.makeSuite(TestMeta))
     test_suite.addTest(unittest.makeSuite(TestResponse))
     test_suite.addTest(unittest.makeSuite(TestSuccessGTFSFlexValidation))
+    test_suite.addTest(unittest.makeSuite(TestSuccessWithWithMacOSFile))
     test_suite.addTest(unittest.makeSuite(TestFailureGTFSFlexValidation))
     test_suite.addTest(unittest.makeSuite(TestGTFSFlexValidator))
     test_suite.addTest(unittest.makeSuite(TestApp))

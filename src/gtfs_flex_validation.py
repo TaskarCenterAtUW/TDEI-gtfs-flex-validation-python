@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Union, Any
 from .config import Settings
 
-from tdei_gtfs_csv_validator import gcv_test_release
-from tdei_gtfs_csv_validator import exceptions as gcvex
+from tcat_gtfs_csv_validator import gcv_test_release
+from tcat_gtfs_csv_validator import exceptions as gcvex
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Path used for download file generation.
@@ -44,8 +44,8 @@ class GTFSFlexValidation:
         validation_message = ''
         root, ext = os.path.splitext(self.file_relative_path)
         if ext and ext.lower() == '.zip':
-            downloaded_file_path = self.download_single_file(self.file_path)
             try:
+                downloaded_file_path = self.download_single_file(self.file_path)
                 logger.info(f' Downloaded file path: {downloaded_file_path}')
                 gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, downloaded_file_path)
                 is_valid = True
@@ -77,9 +77,11 @@ class GTFSFlexValidation:
                 return f'{DOWNLOAD_FILE_PATH}/{file_path}'
             else:
                 logger.info(' File not found!')
+                raise Exception('File not found!')  
         except Exception as e:
             traceback.print_exc()
             logger.error(e)
+            raise e
 
     @staticmethod
     def clean_up(path):
