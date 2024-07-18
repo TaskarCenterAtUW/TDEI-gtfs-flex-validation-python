@@ -43,9 +43,7 @@ Follow the steps to install the node packages required for both building and run
 2. Install the dependencies. Run the following command in terminal on the same directory as `requirements.txt`
     ```
     # Installing requirements
-    pip install -r requirements.txt
-    # Installing tdei-gtfs-csv-validator package
-    pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple tdei-gtfs-csv-validator==0.0.31 
+    pip install -r requirements.txt 
     ```
 ### How to Run the Server/APIs   
 
