@@ -129,3 +129,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.downloads/
+.tempdir/
+tempdir/
+reports/
+test_report.html
+integration_test_report.html

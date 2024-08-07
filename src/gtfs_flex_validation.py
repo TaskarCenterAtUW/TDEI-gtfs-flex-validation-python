@@ -1,60 +1,94 @@
-from python_ms_core import Core
 import os
+import shutil
+import logging
+import traceback
+from pathlib import Path
+from typing import Union, Any
+from .config import Settings
+
+from tcat_gtfs_csv_validator import gcv_test_release
+from tcat_gtfs_csv_validator import exceptions as gcvex
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Path used for asset file generation.
-ASSETS_FILE_PATH = os.path.join(ROOT_DIR, 'assets')
+# Path used for download file generation.
+DOWNLOAD_FILE_PATH = f'{Path.cwd()}/downloads'
+
+logging.basicConfig()
+logger = logging.getLogger('FLEX_VALIDATION')
+logger.setLevel(logging.INFO)
+
+DATA_TYPE = 'gtfs_flex'
+SCHEMA_VERSION = 'v2.0'
 
 
 class GTFSFlexValidation:
-    def __init__(self, file_path=None):
+    def __init__(self, file_path=None, storage_client=None):
+        settings = Settings()
+        self.container_name = settings.storage_container_name
+        self.storage_client = storage_client
         self.file_path = file_path
         self.file_relative_path = file_path.split('/')[-1]
+        self.client = self.storage_client.get_container(container_name=self.container_name)
 
     # Facade function to validate the file
     # Focuses on the file name with file name validation
     # Use `is_gtfs_valid` to do more processing
     def validate(self) -> tuple[bool, str]:
-        dummy_validation = self.is_file_name_valid(self.file_relative_path)
-        return dummy_validation
+        return self.is_gtfs_flex_valid()
 
     # use this method to do the actual validation
     # when ready to replace, replace the call in the 
     # above function.
-    def is_gtfs_flex_valid(self) -> None:
-        file_download_path = self.download_file(self.file_path)
-        # file is downloaded to above path
-        # use the remaining logic to validate 
-        # and create other test cases.
-
-    # dummy validation code with just file name.
-    def is_file_name_valid(self, file_full_name=None) -> tuple[bool, str]:
-        file_name = file_full_name.split('/')[-1]
-        if file_name.find('invalid') != -1:
-            print('Invalid file')
-            return False, 'Invalid file'
-        elif file_name.find('valid') != -1:
-            print('Valid file')
-            return True, 'Valid file'
+    def is_gtfs_flex_valid(self) -> tuple[Union[bool, Any], Union[str, Any]]:
+        is_valid = False
+        validation_message = ''
+        root, ext = os.path.splitext(self.file_relative_path)
+        if ext and ext.lower() == '.zip':
+            try:
+                downloaded_file_path = self.download_single_file(self.file_path)
+                logger.info(f' Downloaded file path: {downloaded_file_path}')
+                gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, downloaded_file_path)
+                is_valid = True
+            except Exception as err:
+                traceback.print_exc()
+                validation_message = str(err)
+                logger.error(f' Error While Validating File: {str(err)}')
+            GTFSFlexValidation.clean_up(downloaded_file_path)
         else:
-            print(f'No regex found in file {file_name}')
-            return False, f'No regex found in file {file_name}'
+            logger.error(f' Failed to validate because unknown file format')
+
+        return is_valid, validation_message
 
     # Downloads the file to local folder of the server
     # file_upload_path is the fullUrl of where the 
     # file is uploaded.
-    def download_file(self, file_upload_path=None) -> str:
-        storage_client = Core.get_storage_client()
-        file = storage_client.get_file_from_url('gtfsflex', file_upload_path)
-        file_path = '{ASSETS_FILE_PATH}/{file_name}'
+    def download_single_file(self, file_upload_path=None) -> str:
+        is_exists = os.path.exists(DOWNLOAD_FILE_PATH)
+        if not is_exists:
+            os.makedirs(DOWNLOAD_FILE_PATH)
+
+        file = self.storage_client.get_file_from_url(self.container_name, file_upload_path)
         try:
             if file.file_path:
-                file_name = file.file_path.split('/')[-1]
-                with open(f'{ASSETS_FILE_PATH}/{file_name}', 'wb') as blob:
+                file_path = os.path.basename(file.file_path)
+                with open(f'{DOWNLOAD_FILE_PATH}/{file_path}', 'wb') as blob:
                     blob.write(file.get_stream())
-                print(f'File download to location: {ASSETS_FILE_PATH}/{file_name}')
-                return file_path
+                logger.info(f' File downloaded to location: {DOWNLOAD_FILE_PATH}/{file_path}')
+                return f'{DOWNLOAD_FILE_PATH}/{file_path}'
             else:
-                print('File not found!')
+                logger.info(' File not found!')
+                raise Exception('File not found!')  
         except Exception as e:
-            print(e)
+            traceback.print_exc()
+            logger.error(e)
+            raise e
+
+    @staticmethod
+    def clean_up(path):
+        if os.path.isfile(path):
+            logger.info(f' Removing File: {path}')
+            os.remove(path)
+        else:
+            folder = os.path.join(DOWNLOAD_FILE_PATH, path)
+            logger.info(f' Removing Folder: {folder}')
+            shutil.rmtree(folder, ignore_errors=False)

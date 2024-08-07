@@ -1,0 +1,14 @@
+{
+  "Tests": [
+    {
+      "Name": "TC1: Flex Failure test case",
+      "Input_file": "test_files/flex_test_case1.json",
+      "Result": true
+    },
+    {
+      "Name": "TC2: Flex Valid test case",
+      "Input_file": "test_files/flex_test_case2.json",
+      "Result": false
+    }
+  ]
+}

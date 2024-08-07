@@ -1,8 +1,9 @@
+import os
+import psutil
 from fastapi import FastAPI, APIRouter, Depends, status
 from functools import lru_cache
 from .config import Settings
 from .gtfx_flex_validator import GTFSFlexValidator
-from .publisher import send
 
 app = FastAPI()
 
@@ -16,7 +17,22 @@ def get_settings():
 
 @app.on_event('startup')
 async def startup_event(settings: Settings = Depends(get_settings)) -> None:
-    GTFSFlexValidator()
+    try:
+        GTFSFlexValidator()
+    except:
+        print('\n\n\x1b[31m Application startup failed due to missing or invalid .env file \x1b[0m')
+        print('\x1b[31m Please provide the valid .env file and .env file should contains following parameters\x1b[0m')
+        print()
+        print('\x1b[31m UPLOAD_TOPIC=xxxx \x1b[0m')
+        print('\x1b[31m UPLOAD_SUBSCRIPTION=xxxx \x1b[0m')
+        print('\x1b[31m VALIDATION_TOPIC=xxxx \x1b[0m')
+        print('\x1b[31m QUEUECONNECTION=xxxx \x1b[0m')
+        print('\x1b[31m STORAGECONNECTION=xxxx \x1b[0m \n\n')
+        parent_pid = os.getpid()
+        parent = psutil.Process(parent_pid)
+        for child in parent.children(recursive=True):
+            child.kill()
+        parent.kill()
 
 
 @app.get('/', status_code=status.HTTP_200_OK)
@@ -31,13 +47,6 @@ def root():
 @prefix_router.post('/ping', status_code=status.HTTP_200_OK)
 def ping():
     return "I'm healthy !!"
-
-
-@app.post('/publish', status_code=status.HTTP_200_OK)
-@app.get('/publish', status_code=status.HTTP_200_OK)
-def publish(settings: Settings = Depends(get_settings)):
-    message_id = send(settings=settings)
-    return f'Published message with Message ID: {message_id}'
 
 
 app.include_router(prefix_router)
