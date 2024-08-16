@@ -70,6 +70,9 @@ class GTFSFlexValidation:
         unique_folder = self.settings.get_unique_id()
         dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, unique_folder)
 
+        # Ensure the unique folder path is created
+        os.makedirs(dl_folder_path, exist_ok=True)
+
         file = self.storage_client.get_file_from_url(self.container_name, file_upload_path)
         try:
             if file.file_path:
@@ -80,7 +83,7 @@ class GTFSFlexValidation:
                 return f'{dl_folder_path}/{file_path}'
             else:
                 logger.info(' File not found!')
-                raise Exception('File not found!')  
+                raise Exception('File not found!')
         except Exception as e:
             traceback.print_exc()
             logger.error(e)
