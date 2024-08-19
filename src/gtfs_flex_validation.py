@@ -23,8 +23,8 @@ SCHEMA_VERSION = 'v2.0'
 
 class GTFSFlexValidation:
     def __init__(self, file_path=None, storage_client=None):
-        settings = Settings()
-        self.container_name = settings.storage_container_name
+        self.settings = Settings()
+        self.container_name = self.settings.storage_container_name
         self.storage_client = storage_client
         self.file_path = file_path
         self.file_relative_path = file_path.split('/')[-1]
@@ -44,9 +44,9 @@ class GTFSFlexValidation:
         validation_message = ''
         root, ext = os.path.splitext(self.file_relative_path)
         if ext and ext.lower() == '.zip':
+            downloaded_file_path = self.download_single_file(self.file_path)
+            logger.info(f' Downloaded file path: {downloaded_file_path}')
             try:
-                downloaded_file_path = self.download_single_file(self.file_path)
-                logger.info(f' Downloaded file path: {downloaded_file_path}')
                 gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, downloaded_file_path)
                 is_valid = True
             except Exception as err:
@@ -67,17 +67,23 @@ class GTFSFlexValidation:
         if not is_exists:
             os.makedirs(DOWNLOAD_FILE_PATH)
 
+        unique_folder = self.settings.get_unique_id()
+        dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, unique_folder)
+
+        # Ensure the unique folder path is created
+        os.makedirs(dl_folder_path, exist_ok=True)
+
         file = self.storage_client.get_file_from_url(self.container_name, file_upload_path)
         try:
             if file.file_path:
                 file_path = os.path.basename(file.file_path)
-                with open(f'{DOWNLOAD_FILE_PATH}/{file_path}', 'wb') as blob:
+                with open(f'{dl_folder_path}/{file_path}', 'wb') as blob:
                     blob.write(file.get_stream())
-                logger.info(f' File downloaded to location: {DOWNLOAD_FILE_PATH}/{file_path}')
-                return f'{DOWNLOAD_FILE_PATH}/{file_path}'
+                logger.info(f' File downloaded to location: {dl_folder_path}/{file_path}')
+                return f'{dl_folder_path}/{file_path}'
             else:
                 logger.info(' File not found!')
-                raise Exception('File not found!')  
+                raise Exception('File not found!')
         except Exception as e:
             traceback.print_exc()
             logger.error(e)
