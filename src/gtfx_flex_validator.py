@@ -8,6 +8,7 @@ from .gtfs_flex_validation import GTFSFlexValidation
 from .serializer.gtfx_flex_serializer import GTFSFlexUpload
 from .models.file_upload_msg import FileUploadMsg
 import threading
+import time
 
 logging.basicConfig()
 logger = logging.getLogger('FLEX_VALIDATOR')
@@ -18,13 +19,15 @@ class GTFSFlexValidator:
     _settings = Settings()
 
     def __init__(self):
-        core = Core()
-        settings = Settings()
-        self._subscription_name = settings.request_subscription
-        self.request_topic = core.get_topic(topic_name=settings.request_topic_name)
-        self.response_topic = core.get_topic(topic_name=settings.response_topic_name)
-        self.logger = core.get_logger()
-        self.storage_client = core.get_storage_client()
+        self.core = Core()
+        self.settings = Settings()
+        self._subscription_name = self.settings.request_subscription
+        self.request_topic = self.core.get_topic(topic_name=self.settings.request_topic_name,max_concurrent_messages=1)
+        self.response_topic = self.core.get_topic(topic_name=self.settings.response_topic_name)
+        self.logger = self.core.get_logger()
+        self.storage_client = self.core.get_storage_client()
+        # self.core = core
+        # self.settings = settings
         self.subscribe()
 
     def subscribe(self) -> None:
@@ -34,9 +37,10 @@ class GTFSFlexValidator:
                 gtfs_upload_message = QueueMessage.to_dict(message)
                 upload_msg = FileUploadMsg.from_dict(gtfs_upload_message)
                 logger.info(upload_msg)
-                # upload_message = GTFSFlexUpload.data_from(gtfs_upload_message)
-                process_thread = threading.Thread(target=self.process_message,args=[upload_msg])
-                process_thread.start()
+                # process_thread = threading.Thread(target=self.process_message,args=[upload_msg])
+                # process_thread.start()
+                # process_thread.join()
+                self.process_message(upload_msg)
             else:
                 logger.info(' No Message')
 
@@ -76,5 +80,24 @@ class GTFSFlexValidator:
             'messageType': upload_message.messageType,
             'data': response_message
         })
-        self.response_topic.publish(data=data)
-        return
+        # self.response_topic.publish(data=data)
+        self.try_to_send_response(data=data)
+
+    def try_to_send_response(self, data: QueueMessage, retry=3) -> None:
+        # try to send the message to the response topic
+        if retry == 0:
+            logger.error(f' Failed to send message to response topic for ID {data.messageId}')
+            return
+        while retry > 0:
+            try:
+                logger.error(f'Publishing message for message ID: {data.messageId}')
+                self.response_topic.publish(data=data)
+                return
+            except Exception as e:
+                logger.error(f' Error while publishing message: {e}')
+                logger.error(f' Retrying to send message to response topic message ID: {data.messageId}')
+                # sleep for one second
+                time.sleep(2)
+                self.response_topic = self.core.get_topic(topic_name=self.settings.response_topic_name)
+                retry -= 1
+                self.try_to_send_response(data=data, retry=retry)
