@@ -27,9 +27,12 @@ RESPONSE_TOPIC=xxxx
 REQUEST_SUBSCRIPTION=xxxx
 QUEUECONNECTION=xxxx
 STORAGECONNECTION=xxxx
+MAX_CONCURRENT_MESSAGES=xx
 ```
 The application connect with the `STORAGECONNECTION` string provided in `.env` file and validates downloaded zipfile using `tdei-gtfs-csv-validator` package.
 `QUEUECONNECTION` is not being used in this application but this is the main requirement for `python-ms-core` package
+
+`MAX_CONCURRENT_MESSAGES` is the maximum number of concurrent messages that the service can handle. If not provided, defaults to 1
 
 ### How to Setup and Build
 Follow the steps to install the node packages required for both building and running the application.
