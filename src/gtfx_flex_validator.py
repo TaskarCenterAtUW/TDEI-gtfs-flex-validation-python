@@ -22,12 +22,10 @@ class GTFSFlexValidator:
         self.core = Core()
         self.settings = Settings()
         self._subscription_name = self.settings.request_subscription
-        self.request_topic = self.core.get_topic(topic_name=self.settings.request_topic_name,max_concurrent_messages=1)
-        self.response_topic = self.core.get_topic(topic_name=self.settings.response_topic_name)
+        self.request_topic = self.core.get_topic(topic_name=self.settings.request_topic_name,max_concurrent_messages=self.settings.max_concurrent_messages)
+        # self.response_topic = self.core.get_topic(topic_name=self.settings.response_topic_name)
         self.logger = self.core.get_logger()
         self.storage_client = self.core.get_storage_client()
-        # self.core = core
-        # self.settings = settings
         self.subscribe()
 
     def subscribe(self) -> None:
@@ -37,9 +35,6 @@ class GTFSFlexValidator:
                 gtfs_upload_message = QueueMessage.to_dict(message)
                 upload_msg = FileUploadMsg.from_dict(gtfs_upload_message)
                 logger.info(upload_msg)
-                # process_thread = threading.Thread(target=self.process_message,args=[upload_msg])
-                # process_thread.start()
-                # process_thread.join()
                 self.process_message(upload_msg)
             else:
                 logger.info(' No Message')
@@ -60,19 +55,13 @@ class GTFSFlexValidator:
             logger.info(' No file Path found in message!')
 
     def send_status(self, valid: bool, upload_message: FileUploadMsg, validation_message: str = '') -> None:
-        # upload_message.data.stage = 'flex-validation'
-        # upload_message.data.meta.isValid = valid
-        # upload_message.data.meta.validationMessage = validation_message or 'Validation successful'
-        # upload_message.data.response.success = valid
-        # upload_message.data.response.message = validation_message or 'Validation successful'
-        # message_id = uuid.uuid1().hex[0:24]
         response_message = {
-             "file_upload_path": upload_message.data.file_upload_path,
-      "user_id": upload_message.data.user_id ,
-      "tdei_project_group_id": upload_message.data.tdei_project_group_id,
-      "success": valid,
-      "message": validation_message
-        }
+                "file_upload_path": upload_message.data.file_upload_path,
+                "user_id": upload_message.data.user_id ,
+                "tdei_project_group_id": upload_message.data.tdei_project_group_id,
+                "success": valid,
+                "message": validation_message
+            }
         logger.info(f' Publishing new message with ID: {upload_message.messageId} with status: {valid} and Message: {validation_message}')
         data = QueueMessage.data_from({
             'messageId': upload_message.messageId,
@@ -80,24 +69,11 @@ class GTFSFlexValidator:
             'messageType': upload_message.messageType,
             'data': response_message
         })
-        # self.response_topic.publish(data=data)
-        self.try_to_send_response(data=data)
+        self.send_response(data=data)
 
-    def try_to_send_response(self, data: QueueMessage, retry=3) -> None:
-        # try to send the message to the response topic
-        if retry == 0:
-            logger.error(f' Failed to send message to response topic for ID {data.messageId}')
-            return
-        while retry > 0:
-            try:
-                logger.error(f'Publishing message for message ID: {data.messageId}')
-                self.response_topic.publish(data=data)
-                return
-            except Exception as e:
-                logger.error(f' Error while publishing message: {e}')
-                logger.error(f' Retrying to send message to response topic message ID: {data.messageId}')
-                # sleep for one second
-                time.sleep(2)
-                self.response_topic = self.core.get_topic(topic_name=self.settings.response_topic_name)
-                retry -= 1
-                self.try_to_send_response(data=data, retry=retry)
+    def send_response(self, data: QueueMessage) -> None:
+        try:
+            response_topic = self.core.get_topic(self.settings.response_topic_name)
+            response_topic.publish(data=data)
+        except Exception as e:
+            logger.error(f'Error sending response: {e}')
