@@ -26,7 +26,8 @@ class GTFSFlexValidator:
         # self.response_topic = self.core.get_topic(topic_name=self.settings.response_topic_name)
         self.logger = self.core.get_logger()
         self.storage_client = self.core.get_storage_client()
-        self.subscribe()
+        self.listening_thread = threading.Thread(target=self.subscribe)
+        self.listening_thread.start()
 
     def subscribe(self) -> None:
         # Process the incoming message
@@ -82,3 +83,6 @@ class GTFSFlexValidator:
             response_topic.publish(data=data)
         except Exception as e:
             logger.error(f'Error sending response: {e}')
+
+    def stop_listening(self):
+        self.listening_thread.join(timeout=0)
