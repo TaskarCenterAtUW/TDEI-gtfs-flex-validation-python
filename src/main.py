@@ -6,6 +6,7 @@ from .config import Settings
 from .gtfx_flex_validator import GTFSFlexValidator
 
 app = FastAPI()
+app.flex_validator = None
 
 prefix_router = APIRouter(prefix='/health')
 
@@ -18,7 +19,7 @@ def get_settings():
 @app.on_event('startup')
 async def startup_event(settings: Settings = Depends(get_settings)) -> None:
     try:
-        GTFSFlexValidator()
+        app.flex_validator = GTFSFlexValidator()
     except:
         print('\n\n\x1b[31m Application startup failed due to missing or invalid .env file \x1b[0m')
         print('\x1b[31m Please provide the valid .env file and .env file should contains following parameters\x1b[0m')
@@ -33,6 +34,11 @@ async def startup_event(settings: Settings = Depends(get_settings)) -> None:
         for child in parent.children(recursive=True):
             child.kill()
         parent.kill()
+
+@app.on_event('shutdown')
+async def shutdown_event():
+    if app.flex_validator:
+        app.flex_validator.shutdown()
 
 
 @app.get('/', status_code=status.HTTP_200_OK)
