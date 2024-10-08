@@ -27,8 +27,14 @@ jobs:
           pip install -r requirements.txt
           pip install numpy==1.26.4
 
-      - name: Run Unit Test Cases
-        run: python test_report.py
+      - name: Run tests with coverage
+        run: |
+          coverage run --source=src -m unittest discover -s tests/unit_tests/
+          coverage xml  
+
+      - name: Check coverage
+        run: |
+          coverage report --fail-under=85
 
       #- name: Run Coverage Report
       #  run: coverage run --source=src -m unittest discover -s tests/unit_tests
