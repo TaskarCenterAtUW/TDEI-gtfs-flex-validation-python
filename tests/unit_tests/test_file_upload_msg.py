@@ -19,11 +19,11 @@ class TestFileUploadMsg(unittest.TestCase):
         self.upload = FileUploadMsg.from_dict(data=data)
 
     def test_message_type(self):
-        self.assertEqual(self.upload.messageType, "workflow_identifier")
+        self.assertEqual(self.upload.messageType, 'workflow_identifier')
 
     def test_message_id(self):
-        self.upload.messageId = "abc"
-        self.assertEqual(self.upload.messageId, "abc")
+        self.upload.messageId = 'abc'
+        self.assertEqual(self.upload.messageId, 'abc')
 
     def test_file_upload_path(self):
         self.assertEqual(self.upload.data.file_upload_path,

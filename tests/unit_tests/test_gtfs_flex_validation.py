@@ -9,12 +9,9 @@ from src.config import Settings
 DOWNLOAD_FILE_PATH = f'{Path.cwd()}/downloads'
 SAVED_FILE_PATH = f'{Path.cwd()}/tests/unit_tests/test_files'
 
-SUCCESS_FILE_NAME = 'success_1_all_attrs.zip'
-MAC_SUCCESS_FILE_NAME = 'success_2_mac_issue.zip'
+SUCCESS_FILE_NAME = 'browncounty-mn-us--flex-v2.zip'
+MAC_SUCCESS_FILE_NAME = 'otterexpress-mn-us--flex-v2.zip'
 FAILURE_FILE_NAME = 'fail_schema_1.zip'
-
-DATA_TYPE = 'gtfs_flex'
-SCHEMA_VERSION = 'v2.0'
 
 
 class TestSuccessWithMacOSFile(unittest.TestCase):
@@ -70,11 +67,13 @@ class TestSuccessGTFSFlexValidation(unittest.TestCase):
         os.makedirs(dl_folder_path, exist_ok=True)  # Ensure this directory is created in the test
 
         with patch.object(GTFSFlexValidation, '__init__', return_value=None):
-            self.validator = GTFSFlexValidation(file_path=file_path, storage_client=MagicMock())
+            self.validator = GTFSFlexValidation(file_path=file_path, storage_client=MagicMock(),
+                                                prefix=Settings().get_unique_id())
             self.validator.file_path = file_path
             self.validator.file_relative_path = SUCCESS_FILE_NAME
             self.validator.container_name = None
             self.validator.settings = Settings()
+            self.validator.prefix = self.validator.settings.get_unique_id()
             mock_download_single_file.return_value = os.path.join(dl_folder_path, SUCCESS_FILE_NAME)
 
     def tearDown(self):
@@ -259,12 +258,7 @@ class TestFailureGTFSFlexValidation(unittest.TestCase):
         file.get_stream = MagicMock(side_effect=FileNotFoundError("Mocked FileNotFoundError"))
         self.validator.storage_client.get_file_from_url.return_value = file
 
-        # Create the mock folder that would be used
-        unique_id = "mocked-uuid"
-        self.validator.settings.get_unique_id = MagicMock()
-        self.validator.settings.get_unique_id.return_value = unique_id
-
-        dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, unique_id)
+        dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix)
         os.makedirs(dl_folder_path, exist_ok=True)
 
         # Act & Assert
