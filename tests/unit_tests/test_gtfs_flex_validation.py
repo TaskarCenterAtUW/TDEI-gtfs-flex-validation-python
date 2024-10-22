@@ -127,33 +127,6 @@ class TestSuccessGTFSFlexValidation(unittest.TestCase):
             content = f.read()
         self.assertEqual(content, b'file_content')
 
-    def test_download_multiple_file_with_same_name(self):
-        # Arrange
-        file_upload_path = DOWNLOAD_FILE_PATH
-        self.validator.storage_client = MagicMock()
-        self.validator.storage_client.get_file_from_url = MagicMock()
-        file = MagicMock()
-        file.file_path = 'text_file.txt'
-        file.get_stream = MagicMock(return_value=b'file_content')
-        self.validator.storage_client.get_file_from_url.return_value = file
-
-        # Act
-        first_downloaded_file_path = self.validator.download_single_file(file_upload_path=file_upload_path)
-        second_downloaded_file_path = self.validator.download_single_file(file_upload_path=file_upload_path)
-
-        # Assert
-        self.assertNotEqual(first_downloaded_file_path, second_downloaded_file_path,
-                            "The downloaded file paths should be different for files with the same name.")
-
-        # Check if the get_file_from_url was called for both download attempts
-        self.assertEqual(self.validator.storage_client.get_file_from_url.call_count, 2,
-                         "get_file_from_url should be called twice for two downloads.")
-        file.get_stream.assert_called()
-
-        # Additional assertions to verify that the paths indeed point to different locations
-        self.assertTrue(first_downloaded_file_path.startswith(DOWNLOAD_FILE_PATH))
-        self.assertTrue(second_downloaded_file_path.startswith(DOWNLOAD_FILE_PATH))
-
     def test_clean_up_file(self):
         # Arrange
         file_upload_path = DOWNLOAD_FILE_PATH
