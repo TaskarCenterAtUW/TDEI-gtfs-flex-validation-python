@@ -32,10 +32,11 @@ class TestSuccessWithMacOSFile(unittest.TestCase):
             self.validator.file_relative_path = MAC_SUCCESS_FILE_NAME
             self.validator.container_name = None
             self.validator.settings = Settings()
+            self.validator.prefix = self.validator.settings.get_unique_id()
             mock_download_single_file.return_value = file_path
 
     def tearDown(self):
-        pass
+        GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_valid_file(self):
         # Arrange
@@ -77,7 +78,7 @@ class TestSuccessGTFSFlexValidation(unittest.TestCase):
             mock_download_single_file.return_value = os.path.join(dl_folder_path, SUCCESS_FILE_NAME)
 
     def tearDown(self):
-        pass
+        GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_valid_file(self):
         # Arrange
@@ -175,10 +176,11 @@ class TestFailureGTFSFlexValidation(unittest.TestCase):
             self.validator.file_relative_path = FAILURE_FILE_NAME
             self.validator.container_name = None
             self.validator.settings = MagicMock()
+            self.validator.prefix = Settings().get_unique_id()
             mock_download_single_file.return_value = file_path
 
     def tearDown(self):
-        pass
+        GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_invalid_file(self):
         # Arrange
