@@ -9,12 +9,9 @@ from src.config import Settings
 DOWNLOAD_FILE_PATH = f'{Path.cwd()}/downloads'
 SAVED_FILE_PATH = f'{Path.cwd()}/tests/unit_tests/test_files'
 
-SUCCESS_FILE_NAME = 'success_1_all_attrs.zip'
-MAC_SUCCESS_FILE_NAME = 'success_2_mac_issue.zip'
+SUCCESS_FILE_NAME = 'browncounty-mn-us--flex-v2.zip'
+MAC_SUCCESS_FILE_NAME = 'otterexpress-mn-us--flex-v2.zip'
 FAILURE_FILE_NAME = 'fail_schema_1.zip'
-
-DATA_TYPE = 'gtfs_flex'
-SCHEMA_VERSION = 'v2.0'
 
 
 class TestSuccessWithMacOSFile(unittest.TestCase):
@@ -35,10 +32,11 @@ class TestSuccessWithMacOSFile(unittest.TestCase):
             self.validator.file_relative_path = MAC_SUCCESS_FILE_NAME
             self.validator.container_name = None
             self.validator.settings = Settings()
+            self.validator.prefix = self.validator.settings.get_unique_id()
             mock_download_single_file.return_value = file_path
 
     def tearDown(self):
-        pass
+        GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_valid_file(self):
         # Arrange
@@ -70,15 +68,17 @@ class TestSuccessGTFSFlexValidation(unittest.TestCase):
         os.makedirs(dl_folder_path, exist_ok=True)  # Ensure this directory is created in the test
 
         with patch.object(GTFSFlexValidation, '__init__', return_value=None):
-            self.validator = GTFSFlexValidation(file_path=file_path, storage_client=MagicMock())
+            self.validator = GTFSFlexValidation(file_path=file_path, storage_client=MagicMock(),
+                                                prefix=Settings().get_unique_id())
             self.validator.file_path = file_path
             self.validator.file_relative_path = SUCCESS_FILE_NAME
             self.validator.container_name = None
             self.validator.settings = Settings()
+            self.validator.prefix = self.validator.settings.get_unique_id()
             mock_download_single_file.return_value = os.path.join(dl_folder_path, SUCCESS_FILE_NAME)
 
     def tearDown(self):
-        pass
+        GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_valid_file(self):
         # Arrange
@@ -128,33 +128,6 @@ class TestSuccessGTFSFlexValidation(unittest.TestCase):
             content = f.read()
         self.assertEqual(content, b'file_content')
 
-    def test_download_multiple_file_with_same_name(self):
-        # Arrange
-        file_upload_path = DOWNLOAD_FILE_PATH
-        self.validator.storage_client = MagicMock()
-        self.validator.storage_client.get_file_from_url = MagicMock()
-        file = MagicMock()
-        file.file_path = 'text_file.txt'
-        file.get_stream = MagicMock(return_value=b'file_content')
-        self.validator.storage_client.get_file_from_url.return_value = file
-
-        # Act
-        first_downloaded_file_path = self.validator.download_single_file(file_upload_path=file_upload_path)
-        second_downloaded_file_path = self.validator.download_single_file(file_upload_path=file_upload_path)
-
-        # Assert
-        self.assertNotEqual(first_downloaded_file_path, second_downloaded_file_path,
-                            "The downloaded file paths should be different for files with the same name.")
-
-        # Check if the get_file_from_url was called for both download attempts
-        self.assertEqual(self.validator.storage_client.get_file_from_url.call_count, 2,
-                         "get_file_from_url should be called twice for two downloads.")
-        file.get_stream.assert_called()
-
-        # Additional assertions to verify that the paths indeed point to different locations
-        self.assertTrue(first_downloaded_file_path.startswith(DOWNLOAD_FILE_PATH))
-        self.assertTrue(second_downloaded_file_path.startswith(DOWNLOAD_FILE_PATH))
-
     def test_clean_up_file(self):
         # Arrange
         file_upload_path = DOWNLOAD_FILE_PATH
@@ -203,10 +176,11 @@ class TestFailureGTFSFlexValidation(unittest.TestCase):
             self.validator.file_relative_path = FAILURE_FILE_NAME
             self.validator.container_name = None
             self.validator.settings = MagicMock()
+            self.validator.prefix = Settings().get_unique_id()
             mock_download_single_file.return_value = file_path
 
     def tearDown(self):
-        pass
+        GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_invalid_file(self):
         # Arrange
@@ -259,12 +233,7 @@ class TestFailureGTFSFlexValidation(unittest.TestCase):
         file.get_stream = MagicMock(side_effect=FileNotFoundError("Mocked FileNotFoundError"))
         self.validator.storage_client.get_file_from_url.return_value = file
 
-        # Create the mock folder that would be used
-        unique_id = "mocked-uuid"
-        self.validator.settings.get_unique_id = MagicMock()
-        self.validator.settings.get_unique_id.return_value = unique_id
-
-        dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, unique_id)
+        dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix)
         os.makedirs(dl_folder_path, exist_ok=True)
 
         # Act & Assert
