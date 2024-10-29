@@ -5,9 +5,7 @@ import traceback
 from pathlib import Path
 from typing import Union, Any
 from .config import Settings
-
-from tcat_gtfs_csv_validator import gcv_test_release
-from tcat_gtfs_csv_validator import exceptions as gcvex
+from gtfs_canonical_validator import CanonicalValidator
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Path used for download file generation.
@@ -17,18 +15,19 @@ logging.basicConfig()
 logger = logging.getLogger('FLEX_VALIDATION')
 logger.setLevel(logging.INFO)
 
-DATA_TYPE = 'gtfs_flex'
-SCHEMA_VERSION = 'v2.0'
-
 
 class GTFSFlexValidation:
-    def __init__(self, file_path=None, storage_client=None):
+    def __init__(self, file_path=None, storage_client=None, prefix=None):
         self.settings = Settings()
         self.container_name = self.settings.storage_container_name
         self.storage_client = storage_client
         self.file_path = file_path
         self.file_relative_path = file_path.split('/')[-1]
         self.client = self.storage_client.get_container(container_name=self.container_name)
+        if prefix:
+            self.prefix = prefix
+        else:
+            self.prefix = self.settings.get_unique_id()
 
     # Facade function to validate the file
     # Focuses on the file name with file name validation
@@ -46,13 +45,13 @@ class GTFSFlexValidation:
         if ext and ext.lower() == '.zip':
             downloaded_file_path = self.download_single_file(self.file_path)
             logger.info(f' Downloaded file path: {downloaded_file_path}')
-            try:
-                gcv_test_release.test_release(DATA_TYPE, SCHEMA_VERSION, downloaded_file_path)
-                is_valid = True
-            except Exception as err:
-                traceback.print_exc()
-                validation_message = str(err)
-                logger.error(f' Error While Validating File: {str(err)}')
+            flex_validator = CanonicalValidator(zip_file=downloaded_file_path)
+            result = flex_validator.validate()
+            is_valid = result.status
+
+            if result.error is not None:
+                validation_message = str(result.error)
+                logger.error(f' Error While Validating File: {str(result.error)}')
             GTFSFlexValidation.clean_up(downloaded_file_path)
         else:
             logger.error(f' Failed to validate because unknown file format')
@@ -67,7 +66,7 @@ class GTFSFlexValidation:
         if not is_exists:
             os.makedirs(DOWNLOAD_FILE_PATH)
 
-        unique_folder = self.settings.get_unique_id()
+        unique_folder = self.prefix
         dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, unique_folder)
 
         # Ensure the unique folder path is created
@@ -95,6 +94,5 @@ class GTFSFlexValidation:
             logger.info(f' Removing File: {path}')
             os.remove(path)
         else:
-            folder = os.path.join(DOWNLOAD_FILE_PATH, path)
-            logger.info(f' Removing Folder: {folder}')
-            shutil.rmtree(folder, ignore_errors=False)
+            logger.info(f' Removing Folder: {path}')
+            shutil.rmtree(path, ignore_errors=False)
