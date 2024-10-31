@@ -126,18 +126,14 @@ class GTFSFlexValidation:
         return is_valid, validation_message
 
     # Downloads the file to local folder of the server
-    # file_upload_path is the fullUrl of where the 
+    # file_upload_path is the fullUrl of where the
     # file is uploaded.
     def download_single_file(self, file_upload_path=None) -> str:
-        is_exists = os.path.exists(DOWNLOAD_FILE_PATH)
-        if not is_exists:
-            os.makedirs(DOWNLOAD_FILE_PATH)
-
-        unique_folder = self.prefix
+        unique_folder = self.settings.get_unique_id()
         dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, unique_folder)
 
-        # Ensure the unique folder path is created
-        os.makedirs(dl_folder_path, exist_ok=True)
+        if not os.path.exists(dl_folder_path):
+            os.makedirs(dl_folder_path)
 
         file = self.storage_client.get_file_from_url(self.container_name, file_upload_path)
         try:
@@ -149,11 +145,9 @@ class GTFSFlexValidation:
                 return f'{dl_folder_path}/{file_path}'
             else:
                 logger.info(' File not found!')
-                raise Exception('File not found!')
         except Exception as e:
             traceback.print_exc()
             logger.error(e)
-            raise e
 
     @staticmethod
     def clean_up(path):
