@@ -2,6 +2,7 @@ import os
 import shutil
 import unittest
 from pathlib import Path
+from src.config import Settings
 from unittest.mock import patch, MagicMock
 from src.gtfs_flex_validation import GTFSFlexValidation
 
@@ -13,9 +14,9 @@ MAC_SUCCESS_FILE_NAME = 'otterexpress-mn-us--flex-v2.zip'
 FAILURE_FILE_NAME = 'fail_schema_1.zip'
 
 SUCCESS2_FILE_NAME = 'flex-good.zip'
-FAIL2_FILE_NAME='flex-bad-specificerror.zip'
-FAIL3_FILE_NAME='flex-bad-foreignkey.zip'
-FAIL4_FILE_NAME='flex-bad-filename.zip'
+FAIL2_FILE_NAME = 'flex-bad-specificerror.zip'
+FAIL3_FILE_NAME = 'flex-bad-foreignkey.zip'
+FAIL4_FILE_NAME = 'flex-bad-filename.zip'
 
 class TestBadFile4(unittest.TestCase):
 
@@ -60,6 +61,7 @@ class TestBadFile4(unittest.TestCase):
 
         # Assert
         self.assertFalse(is_valid)
+
 
 class TestBadFile3(unittest.TestCase):
 
@@ -253,11 +255,11 @@ class TestSuccessGTFSFlexValidation(unittest.TestCase):
             self.validator.file_path = file_path
             self.validator.file_relative_path = SUCCESS_FILE_NAME
             self.validator.container_name = None            
-            self.validator.settings = MagicMock()
+            self.validator.prefix = Settings().get_unique_id()
             mock_download_single_file.return_value = os.path.join(dl_folder_path, SUCCESS_FILE_NAME)
 
     def tearDown(self):
-        pass #GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
+        GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_valid_file(self):
         # Arrange
