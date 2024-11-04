@@ -6,30 +6,7 @@ from pathlib import Path
 from typing import Union, Any
 from .config import Settings
 from gtfs_canonical_validator import CanonicalValidator
-
-# in an effort to be more permissive of small errors, accept these which could conceivably be calculated/fixed/interpreted by common applications
-CHANGE_ERROR_TO_WARNING = [ "block_trips_with_overlapping_stop_times", "trip_distance_exceeds_shape_distance", "decreasing_or_equal_stop_time_distance", "decreasing_shape_distance",
-    "empty_file", "equal_shape_distance_diff_coordinates", "fare_transfer_rule_duration_limit_type_without_duration_limit",
-    "fare_transfer_rule_duration_limit_without_type", "fare_transfer_rule_invalid_transfer_count", "fare_transfer_rule_missing_transfer_count",
-    "fare_transfer_rule_with_forbidden_transfer_count", "forbidden_shape_dist_traveled", "invalid_currency", "invalid_currency_amount",
-    "invalid_url", "location_with_unexpected_stop_time", "missing_trip_edge", "new_line_in_value", "point_near_origin", "point_near_pole", 
-    "route_both_short_and_long_name_missing", "route_networks_specified_in_more_than_one_file", "start_and_end_range_equal", "start_and_end_range_out_of_order", 
-    "station_with_parent_station", "stop_time_timepoint_without_times", "stop_time_with_arrival_before_previous_departure_time", 
-    "stop_time_with_only_arrival_or_departure_time", "stop_without_location", "timeframe_only_start_or_end_time_specified", "timeframe_overlap", 
-    "timeframe_start_or_end_time_greater_than_twenty_four_hours", "u_r_i_syntax_error" ]
-
-FLEX_FATAL_ERROR_CODES = [ "missing_required_element", "unsupported_feature_type", "unsupported_geo_json_type", "unsupported_geometry_type", 
-                          "invalid_geometry", "forbidden_prior_day_booking_field_value", "forbidden_prior_notice_start_day", "forbidden_prior_notice_start_time", 
-                          "forbidden_real_time_booking_field_value", "forbidden_same_day_booking_field_value", "invalid_prior_notice_duration_min", 
-                          "missing_prior_day_booking_field_value", "missing_prior_notice_duration_min", "missing_prior_notice_start_time", 
-                          "prior_notice_last_day_after_start_day"]
-
-FLEX_FIELDS = {
-    'stop_times.txt': [ "start_pickup_dropoff_window",  "end_pickup_dropoff_window", "pickup_booking_rule_id", "drop_off_booking_rule_id",
-    "mean_duration_factor", "mean_duration_offset", "safe_duration_factor", "safe_duration_offset"]
-}
-
-FLEX_FILES = ["locations.geojson", "booking_rules.txt", "location_groups.txt", "location_group_stops.txt" ]
+from .flex_config import CHANGE_ERROR_TO_WARNING, FLEX_FATAL_ERROR_CODES, FLEX_FIELDS, FLEX_FILES
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Path used for download file generation.
@@ -71,14 +48,13 @@ class GTFSFlexValidation:
             logger.info(f' Downloaded file path: {downloaded_file_path}')
             flex_validator = CanonicalValidator(zip_file=downloaded_file_path)
             result = flex_validator.validate()
-            
+
             is_valid = result.status
             if isinstance(result.error, list) and result.error is not None:
                 for error in result.error[:]:
                     # change some smaller errors to warnings instead to relax the strict validation MD gives us
                     if error['code'] in CHANGE_ERROR_TO_WARNING:
-                        if(result.info is None): result.info = []
-
+                        if result.info is None: result.info = []
                         result.info.append(error)
                         result.error.remove(error)
                         continue
@@ -93,19 +69,19 @@ class GTFSFlexValidation:
                         # one of the fields in a given file is a pathway-spec field--if it's flagged, fail
                         if "fieldName" in notice and "filename" in notice:
                             if notice['filename'] in FLEX_FIELDS and \
-                            notice['fieldName'] in FLEX_FIELDS[notice['filename']]:
+                                    notice['fieldName'] in FLEX_FIELDS[notice['filename']]:
                                 is_valid = False
                                 continue
 
                         # one of the pathways spec'd files has an error--if so, fail
                         if "filename" in notice:
-                            if(notice['filename'] in FLEX_FILES):
+                            if notice['filename'] in FLEX_FILES:
                                 is_valid = False
                                 continue
 
                         # similar to the above, but the field for the filename is parent/child
                         if "childFilename" in notice:
-                            if(notice['childFilename'] in FLEX_FILES):
+                            if notice['childFilename'] in FLEX_FILES:
                                 is_valid = False
                                 continue
 
@@ -116,8 +92,6 @@ class GTFSFlexValidation:
                 if result.error is not None:
                     validation_message = str(result.error)
                     logger.error(f' Error While Validating File: {str(result.error)}')
-            
-
 
             GTFSFlexValidation.clean_up(downloaded_file_path)
         else:
@@ -129,11 +103,13 @@ class GTFSFlexValidation:
     # file_upload_path is the fullUrl of where the
     # file is uploaded.
     def download_single_file(self, file_upload_path=None) -> str:
-        unique_folder = self.settings.get_unique_id()
+        is_exists = os.path.exists(DOWNLOAD_FILE_PATH)
+        if not is_exists:
+            os.makedirs(DOWNLOAD_FILE_PATH)
+        unique_folder = self.prefix
         dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH, unique_folder)
 
-        if not os.path.exists(dl_folder_path):
-            os.makedirs(dl_folder_path)
+        os.makedirs(dl_folder_path, exist_ok=True)
 
         file = self.storage_client.get_file_from_url(self.container_name, file_upload_path)
         try:
@@ -145,9 +121,11 @@ class GTFSFlexValidation:
                 return f'{dl_folder_path}/{file_path}'
             else:
                 logger.info(' File not found!')
+                raise Exception('File not found!')
         except Exception as e:
             traceback.print_exc()
             logger.error(e)
+            raise e
 
     @staticmethod
     def clean_up(path):
