@@ -38,7 +38,7 @@ async def startup_event(settings: Settings = Depends(get_settings)) -> None:
 @app.on_event('shutdown')
 async def shutdown_event():
     if app.flex_validator:
-        app.flex_validator.shutdown()
+        app.flex_validator.stop_listening()
 
 
 @app.get('/', status_code=status.HTTP_200_OK)
