@@ -48,6 +48,9 @@ Follow the steps to install the node packages required for both building and run
     # Installing requirements
     pip install -r requirements.txt 
     ```
+
+    NOTE: if you have problems building on a Mac, e.g. with uamqb, see here: https://github.com/Azure/azure-uamqp-python/issues/386
+
 ### How to Run the Server/APIs   
 
 1. The http server by default starts with `8000` port
