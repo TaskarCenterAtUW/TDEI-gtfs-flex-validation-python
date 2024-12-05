@@ -18,6 +18,7 @@ FAIL2_FILE_NAME = 'flex-bad-specificerror.zip'
 FAIL3_FILE_NAME = 'flex-bad-foreignkey.zip'
 FAIL4_FILE_NAME = 'flex-bad-filename.zip'
 
+
 class TestBadFile4(unittest.TestCase):
 
     @patch.object(GTFSFlexValidation, 'download_single_file')
@@ -198,7 +199,6 @@ class TestGoodFile2(unittest.TestCase):
         self.assertTrue(is_valid)
 
 
-
 class TestSuccessWithMacOSFile(unittest.TestCase):
     @patch.object(GTFSFlexValidation, 'download_single_file')
     def setUp(self, mock_download_single_file):
@@ -219,7 +219,7 @@ class TestSuccessWithMacOSFile(unittest.TestCase):
             mock_download_single_file.return_value = file_path
 
     def tearDown(self):
-        pass #GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
+        pass  # GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_valid_file(self):
         # Arrange
@@ -254,7 +254,7 @@ class TestSuccessGTFSFlexValidation(unittest.TestCase):
             self.validator = GTFSFlexValidation(file_path=file_path, storage_client=MagicMock())
             self.validator.file_path = file_path
             self.validator.file_relative_path = SUCCESS_FILE_NAME
-            self.validator.container_name = None            
+            self.validator.container_name = None
             self.validator.prefix = Settings().get_unique_id()
             mock_download_single_file.return_value = os.path.join(dl_folder_path, SUCCESS_FILE_NAME)
 
@@ -360,7 +360,7 @@ class TestFailureGTFSFlexValidation(unittest.TestCase):
             mock_download_single_file.return_value = file_path
 
     def tearDown(self):
-        pass #GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
+        pass  # GTFSFlexValidation.clean_up(os.path.join(DOWNLOAD_FILE_PATH, self.validator.prefix))
 
     def test_validate_with_invalid_file(self):
         # Arrange
@@ -410,15 +410,223 @@ class TestFailureGTFSFlexValidation(unittest.TestCase):
         self.validator.storage_client.get_file_from_url = MagicMock()
         file = MagicMock()
         file.file_path = 'text_file.txt'
-        file.get_stream = MagicMock(side_effect=FileNotFoundError("Mocked FileNotFoundError"))
+        file.get_stream = MagicMock(side_effect=FileNotFoundError('Mocked FileNotFoundError'))
         self.validator.storage_client.get_file_from_url.return_value = file
 
         dl_folder_path = os.path.join(DOWNLOAD_FILE_PATH)
         os.makedirs(dl_folder_path, exist_ok=True)
 
+    def test_clean_up_non_existent_path(self):
+        # Arrange
+        non_existent_path = f'{DOWNLOAD_FILE_PATH}/non_existent_file_or_folder'
+
+        # Act
+        try:
+            GTFSFlexValidation.clean_up(non_existent_path)
+            success = True
+        except Exception:
+            success = False
+
+        # Assert
+        self.assertTrue(success)
+
+    def test_download_single_file_file_not_found_exception(self):
+        # Arrange
+        self.validator.storage_client = MagicMock()
+        self.validator.storage_client.get_file_from_url = MagicMock()
+        self.validator.storage_client.get_file_from_url.side_effect = FileNotFoundError('File not found')
+        self.validator.prefix = Settings().get_unique_id()
+
         # Act & Assert
-#        with self.assertRaises(FileNotFoundError):
-#            self.validator.download_single_file(file_upload_path=file_upload_path)
+        with self.assertRaises(FileNotFoundError):
+            self.validator.download_single_file(file_upload_path='mock_nonexistent_file')
+
+    @patch('src.gtfs_flex_validation.CanonicalValidator')
+    def test_is_gtfs_flex_valid_with_errors(self, mock_canonical_validator):
+        # Arrange
+        mock_result = MagicMock()
+        mock_result.status = False
+        mock_result.error = [
+            {'code': 'INVALID_FIELD', 'sampleNotices': [{'fieldName': 'invalid_field', 'filename': 'flex_data'}]}
+        ]
+        mock_canonical_validator.return_value.validate.return_value = mock_result
+
+        expected_downloaded_file_path = f'{SAVED_FILE_PATH}/fail_schema_1.zip'
+        self.validator.download_single_file = MagicMock(return_value=expected_downloaded_file_path)
+
+        # Act
+        is_valid, validation_message = self.validator.is_gtfs_flex_valid()
+
+        # Assert
+        self.assertFalse(is_valid)
+        self.assertIn('INVALID_FIELD', validation_message)
+
+    @patch('src.gtfs_flex_validation.CanonicalValidator')
+    def test_is_gtfs_flex_valid_with_pathways_items(self, mock_canonical_validator):
+        # Arrange
+        mock_result = MagicMock()
+        mock_result.status = False
+        mock_result.error = [
+            {'code': 'INVALID_FIELD',
+             'sampleNotices': [{'fieldName': 'start_pickup_dropoff_window', 'filename': 'stop_times.txt'},
+                               {'fieldName': 'end_pickup_dropoff_window', 'filename': 'stop_times.txt'}]}
+        ]
+        mock_canonical_validator.return_value.validate.return_value = mock_result
+
+        expected_downloaded_file_path = f'{SAVED_FILE_PATH}/fail_schema_1.zip'
+        self.validator.download_single_file = MagicMock(return_value=expected_downloaded_file_path)
+
+        # Act
+        is_valid, validation_message = self.validator.is_gtfs_flex_valid()
+
+        # Assert
+        self.assertFalse(is_valid)
+        self.assertIn('INVALID_FIELD', validation_message)
+
+    @patch('src.gtfs_flex_validation.CanonicalValidator')
+    def test_is_gtfs_flex_valid_with_pathways_parent_items(self, mock_canonical_validator):
+        # Arrange
+        mock_result = MagicMock()
+        mock_result.status = False
+        mock_result.error = [
+            {'code': 'INVALID_FIELD',
+             'sampleNotices': [{'fieldName': 'start_pickup_dropoff_window', 'childFilename': 'locations.geojson'},
+                               {'fieldName': 'end_pickup_dropoff_window', 'childFilename': 'booking_rules.txt'}]}
+        ]
+        mock_canonical_validator.return_value.validate.return_value = mock_result
+
+        expected_downloaded_file_path = f'{SAVED_FILE_PATH}/fail_schema_1.zip'
+        self.validator.download_single_file = MagicMock(return_value=expected_downloaded_file_path)
+
+        # Act
+        is_valid, validation_message = self.validator.is_gtfs_flex_valid()
+
+        # Assert
+        self.assertFalse(is_valid)
+        self.assertIn('INVALID_FIELD', validation_message)
+
+    @patch('src.gtfs_flex_validation.CanonicalValidator')
+    def test_is_gtfs_flex_valid_with_no_errors(self, mock_canonical_validator):
+        # Arrange
+        mock_result = MagicMock()
+        mock_result.status = True
+        mock_result.error = []
+        mock_canonical_validator.return_value.validate.return_value = mock_result
+
+        expected_downloaded_file_path = f'{SAVED_FILE_PATH}/{SUCCESS2_FILE_NAME}'
+        self.validator.download_single_file = MagicMock(return_value=expected_downloaded_file_path)
+
+        # Act
+        is_valid, validation_message = self.validator.is_gtfs_flex_valid()
+
+        # Assert
+        self.assertTrue(is_valid)
+
+    def test_is_gtfs_flex_valid_with_invalid_file_extension(self):
+        self.validator.file_relative_path = f'{SAVED_FILE_PATH}/fail_schema_1.txt'
+
+        # Act
+        is_valid, validation_message = self.validator.is_gtfs_flex_valid()
+
+        # Assert
+        self.assertFalse(is_valid)
+
+    @patch.object(GTFSFlexValidation, 'is_gtfs_flex_valid')
+    def test_validate_facade(self, mock_is_gtfs_flex_valid):
+        # Arrange
+        mock_is_gtfs_flex_valid.return_value = (True, 'Valid file')
+
+        # Act
+        is_valid, validation_message = self.validator.validate()
+
+        # Assert
+        mock_is_gtfs_flex_valid.assert_called_once()
+        self.assertTrue(is_valid)
+        self.assertEqual(validation_message, 'Valid file')
+
+    @patch('os.makedirs')
+    @patch('builtins.open', new_callable=MagicMock)
+    def test_download_single_file_creates_directory(self, mock_open, mock_makedirs):
+        # Arrange
+        mock_file = MagicMock()
+        mock_file.file_path = 'file.zip'
+        mock_file.get_stream = MagicMock(return_value=b'file_content')
+
+        self.validator.storage_client = MagicMock()
+        self.validator.storage_client.get_file_from_url = MagicMock(return_value=mock_file)
+
+        self.validator.prefix = "test-prefix"  # Mock prefix
+        expected_dl_folder_path = f"{DOWNLOAD_FILE_PATH}/{self.validator.prefix}"
+        expected_file_path = f"{expected_dl_folder_path}/file.zip"
+
+        # Act
+        downloaded_file_path = self.validator.download_single_file(file_upload_path='mock_file.zip')
+
+        # Assert
+        mock_makedirs.assert_called_once_with(expected_dl_folder_path, exist_ok=True)
+        mock_open.assert_called_once_with(expected_file_path, 'wb')
+        self.assertEqual(downloaded_file_path, expected_file_path)
+        mock_file.get_stream.assert_called_once()
+
+
+class TestGTFSFlexValidationInit(unittest.TestCase):
+    @patch('src.gtfs_flex_validation.Settings')
+    def test_initialization(self, mock_settings):
+        # Arrange
+        mock_storage_client = MagicMock()
+        mock_container = MagicMock()
+        mock_storage_client.get_container.return_value = mock_container
+
+        mock_settings_instance = mock_settings.return_value
+        mock_settings_instance.storage_container_name = "test_container"
+        mock_settings_instance.get_unique_id.return_value = "unique_prefix"
+
+        file_path = "path/to/file.zip"
+
+        # Act
+        validation_instance = GTFSFlexValidation(
+            file_path=file_path,
+            storage_client=mock_storage_client,
+            prefix=None
+        )
+
+        # Assert
+        self.assertEqual(validation_instance.file_path, file_path)
+        self.assertEqual(validation_instance.file_relative_path, "file.zip")
+        self.assertEqual(validation_instance.container_name, "test_container")
+        self.assertEqual(validation_instance.prefix, "unique_prefix")
+        self.assertEqual(validation_instance.client, mock_container)
+
+        mock_storage_client.get_container.assert_called_once_with(container_name="test_container")
+        mock_settings_instance.get_unique_id.assert_called_once()
+
+    @patch('src.gtfs_flex_validation.Settings')
+    def test_initialization_with_prefix(self, mock_settings):
+        # Arrange
+        mock_storage_client = MagicMock()
+        mock_container = MagicMock()
+        mock_storage_client.get_container.return_value = mock_container
+
+        mock_settings_instance = mock_settings.return_value
+        mock_settings_instance.storage_container_name = "test_container"
+
+        file_path = "path/to/file.zip"
+        custom_prefix = "custom_prefix"
+
+        # Act
+        validation_instance = GTFSFlexValidation(
+            file_path=file_path,
+            storage_client=mock_storage_client,
+            prefix=custom_prefix
+        )
+
+        # Assert
+        self.assertEqual(validation_instance.prefix, custom_prefix)
+        self.assertEqual(validation_instance.container_name, "test_container")
+        self.assertEqual(validation_instance.file_relative_path, "file.zip")
+
+        mock_storage_client.get_container.assert_called_once_with(container_name="test_container")
+        mock_settings_instance.get_unique_id.assert_not_called()
 
 
 if __name__ == '__main__':
