@@ -6,6 +6,7 @@ import urllib.parse
 from pathlib import Path
 from .config import Settings
 from python_ms_core import Core
+from gtfs_canonical_validator import CanonicalValidator
 from .models.file_upload_msg import FileUploadMsg
 from .gtfs_flex_validation import GTFSFlexValidation
 from python_ms_core.core.queue.models.queue_message import QueueMessage
@@ -74,7 +75,11 @@ class GTFSFlexValidator:
             'user_id': upload_message.data.user_id,
             'tdei_project_group_id': upload_message.data.tdei_project_group_id,
             'success': valid,
-            'message': validation_message
+            'message': validation_message,
+            'package': {
+                'python-ms_core': Core.__version__,
+                'gtfs-canonical-validator': CanonicalValidator.__version__
+            }
         }
         logger.info(
             f' Publishing new message with ID: {upload_message.messageId} with status: {valid} and Message: {validation_message}')
