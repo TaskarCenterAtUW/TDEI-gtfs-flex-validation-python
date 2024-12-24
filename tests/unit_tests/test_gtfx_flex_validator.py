@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch, call
 from src.gtfx_flex_validator import GTFSFlexValidator
+import python_ms_core
+from gtfs_canonical_validator import CanonicalValidator
 
 
 class TestGTFSFlexValidator(unittest.TestCase):
@@ -49,7 +51,6 @@ class TestGTFSFlexValidator(unittest.TestCase):
         # Assert
         self.validator.process_message.assert_called_once_with(mock_request_message)
 
-
     @patch('src.gtfx_flex_validator.GTFSFlexValidation')
     def test_process_message_with_valid_file_path(self, mock_gtfs_flex_validation):
         # Arrange
@@ -68,7 +69,7 @@ class TestGTFSFlexValidator(unittest.TestCase):
         # Assert
 
         self.validator.send_status.assert_called_once_with(valid=True, upload_message=mock_request_message,
-                                                         validation_message='Validation successful')
+                                                           validation_message='Validation successful')
 
     @patch('src.gtfx_flex_validator.GTFSFlexValidation')
     def test_process_message_when_file_path_is_none_and_valid_is_false(self, mock_gtfs_flex_validation):
@@ -88,7 +89,6 @@ class TestGTFSFlexValidator(unittest.TestCase):
             upload_message=mock_request_message,
             validation_message='Validation error'
         )
-
 
     @patch('src.gtfx_flex_validator.GTFSFlexValidation')
     def test_process_message_when_exception_is_raised(self, mock_gtfs_flex_validation):
@@ -117,7 +117,17 @@ class TestGTFSFlexValidator(unittest.TestCase):
         # Arrange
         mock_request_message = MagicMock()
         mock_response_topic = self.validator.core.get_topic.return_value
-        mock_data = {'messageId': '1234', 'messageType': 'test', 'data': {'success': True}}
+        mock_data = {
+            'messageId': '1234',
+            'messageType': 'test',
+            'data': {
+                'success': True,
+                     'package': {
+                         'python-ms_core': python_ms_core.__version__,
+                         'gtfs-canonical-validator': CanonicalValidator.__version__
+                     }
+            }
+        }
         mock_queue_message.data_from.return_value = mock_data
 
         # Act
